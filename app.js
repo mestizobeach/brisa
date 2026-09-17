@@ -45,15 +45,6 @@ const foodSection = (id) => {
   const places = beachFood[id];
   return `<section class="food-section"><div class="food-heading"><div><p class="section-label">PARA COMER Y TOMAR ALGO</p><h2>Chiringuitos y restaurantes</h2></div><span>${places.length}</span></div><div class="food-list">${places.map((place) => `<article class="food-card"><span class="food-icon" aria-hidden="true">${place.icon}</span><div class="food-content"><span class="food-kind">${place.kind}</span><h3>${place.name}</h3><p class="food-place">${place.place}</p><p class="food-detail">${place.detail}</p><a href="${place.url}" target="_blank" rel="noopener noreferrer">↗ ${place.link}</a></div></article>`).join("")}</div><p class="food-note">Locales junto a la playa que hemos podido verificar. Consulta sus horarios antes de ir.</p></section>`;
 };
-// Fotografías reutilizables. Se cargan desde Wikimedia Commons y mantienen enlace
-// directo a autoría y licencia para que la atribución siempre sea visible.
-const beachImages = {
-  "san-lorenzo": { file: "Playa_de_San_Lorenzo_en_Gij%C3%B3n.jpg", author: "Mentxuwiki", license: "CC BY-SA 4.0", page: "https://commons.wikimedia.org/wiki/File:Playa_de_San_Lorenzo_en_Gij%C3%B3n.jpg" },
-  rodiles: { file: "Playa_de_Rodiles,_Asturias.jpg", author: "Encina waslala", license: "CC BY-SA 4.0", page: "https://commons.wikimedia.org/wiki/File:Playa_de_Rodiles,_Asturias.jpg" },
-  salinas: { file: "Playa_de_Salinas-La_Pe%C3%B1ona._01.jpg", author: "Adolfobrigido", license: "CC BY-SA", page: "https://commons.wikimedia.org/wiki/File:Playa_de_Salinas-La_Pe%C3%B1ona._01.jpg" },
-  aguilar: { file: "Playa_Del_Aguilar_Asturias_(7200185).jpeg", author: "Francisco Rodriguez", license: "CC BY 3.0", page: "https://commons.wikimedia.org/wiki/File:Playa_Del_Aguilar_Asturias_(7200185).jpeg" },
-  penarronda: { file: "Playa-Penarronda.jpg", author: "Marta Gonzalez", license: "Dominio público", page: "https://commons.wikimedia.org/wiki/File:Playa-Penarronda.jpg" }
-};
 const beachCoordinates = {
   "san-lorenzo": [43.543, -5.661], rodiles: [43.534, -5.384],
   salinas: [43.578, -5.964], aguilar: [43.557, -6.109],
@@ -281,14 +272,6 @@ function renderBeach(b) {
   loadWaterTemperature(b);
   loadSurf(b);
   loadSunset(b);
-  const image = beachImages[b.id];
-  if (image) {
-    const hero = document.querySelector(".hero");
-    hero.style.backgroundImage = `linear-gradient(135deg, rgba(7, 35, 52, .66), rgba(10, 102, 128, .24)), url("https://commons.wikimedia.org/wiki/Special:FilePath/${image.file}?width=1400")`;
-    hero.style.backgroundSize = "cover";
-    hero.style.backgroundPosition = "center";
-    hero.insertAdjacentHTML("beforeend", `<a href="${image.page}" target="_blank" rel="noopener noreferrer" style="position:absolute;right:18px;bottom:16px;color:#fff;background:rgba(0,0,0,.45);border-radius:999px;padding:7px 10px;font-size:11px;text-decoration:none;z-index:2">Foto: ${image.author} · ${image.license}</a>`);
-  }
   document.querySelector(".practical").insertAdjacentHTML("afterend", `<div class="quick-note" style="margin-top:20px"><span>🅿</span><div><strong>Aparcamiento</strong>${plan.parking}</div></div>${foodSection(b.id)}<div class="quick-note" style="margin-top:20px"><span>♫</span><div><strong>Conciertos</strong>Se mostrarán aquí cuando estén confirmados.</div></div>`);
   document.querySelector("#back").addEventListener("click", () => { window.location.hash = "#/playas"; });
 }
