@@ -206,17 +206,48 @@ async function loadSurf(beach) {
   }
 }
 const metric = (value, label) => `<div class="metric"><strong>${value}</strong><span>${label}</span></div>`;
-const hours = (temp, waves) => {
-  const temperature = Number.parseInt(temp, 10);
-  const forecast = [
-    ["Ahora", "☀", temperature, "0%", "↗ 12"], ["15", "☀", temperature, "0%", "↗ 13"],
-    ["16", "⛅", temperature - 1, "0%", "↗ 14"], ["17", "⛅", temperature - 1, "5%", "↗ 15"],
-    ["18", "☁", temperature - 2, "10%", "→ 14"], ["19", "☁", temperature - 2, "10%", "→ 12"],
-    ["20", "☾", temperature - 3, "5%", "↘ 9"], ["21", "☾", temperature - 3, "5%", "↘ 8"],
-    ["22", "☾", temperature - 4, "0%", "↓ 7"], ["23", "☾", temperature - 4, "0%", "↓ 6"]
-  ];
-  return forecast.map(([hour, icon, degree, rain, wind]) => `<div class="hour"><time>${hour}</time><i aria-hidden="true">${icon}</i><b>${degree}°</b><small>${rain} · ${wind}</small></div>`).join("");
-};
+async function loadHourly(beach) {
+  const forecast = document.querySelector(".forecast");
+  const status = document.querySelector(".hero .status");
+  const summary = document.querySelector(".details > .quick-note div");
+  if (!forecast) return;
+  try {
+    const [latitude, longitude] = beachCoordinates[beach.id];
+    const url = new URL("https://api.open-meteo.com/v1/forecast");
+    url.search = new URLSearchParams({ latitude, longitude, hourly: "temperature_2m,weather_code,precipitation_probability,wind_speed_10m,is_day", timezone: "Europe/Madrid", forecast_days: "2" });
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const hourly = (await response.json()).hourly;
+    if (!hourly?.time?.length || !["temperature_2m", "weather_code", "precipitation_probability", "wind_speed_10m", "is_day"].every((field) => Array.isArray(hourly[field]) && hourly[field].length === hourly.time.length)) throw new Error("Previsión incompleta");
+    const nowHour = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Madrid", hour: "2-digit", hourCycle: "h23" }).format(new Date());
+    const today = madridToday();
+    const start = hourly.time.findIndex((time) => time === `${today}T${nowHour}:00`);
+    if (start < 0 || hourly.time.length < start + 24) throw new Error("Faltan horas");
+    const rows = hourly.time.slice(start, start + 24).map((time, offset) => {
+      const i = start + offset;
+      return { time, temperature: hourly.temperature_2m[i], code: hourly.weather_code[i], rain: hourly.precipitation_probability[i], wind: hourly.wind_speed_10m[i], day: hourly.is_day[i] };
+    });
+    if (rows.some((row) => !Number.isFinite(row.temperature))) throw new Error("Temperaturas incompletas");
+    if (!forecast.isConnected) return;
+    forecast.innerHTML = rows.map((row, i) => {
+      const weather = dailyWeather(row.code);
+      const icon = row.day === 0 && row.code <= 2 ? "☾" : weather.icon;
+      const hour = row.time.slice(11, 13);
+      const label = i === 0 ? "Ahora" : row.time.startsWith(today) ? hour : `Mañ. ${hour}`;
+      const rain = Number.isFinite(row.rain) ? `${Math.round(row.rain)}%` : "—";
+      const wind = Number.isFinite(row.wind) ? `${Math.round(row.wind)} km/h` : "—";
+      return `<div class="hour" aria-label="${row.time.slice(0, 10)} a las ${hour}:00: ${weather.label}, ${Math.round(row.temperature)} grados, lluvia ${rain}, viento ${wind}"><time>${label}</time><i aria-hidden="true">${icon}</i><b>${Math.round(row.temperature)}°</b><small>☂ ${rain}<br>≋ ${wind}</small></div>`;
+    }).join("");
+    const current = rows[0];
+    const currentWeather = dailyWeather(current.code);
+    if (status?.isConnected) { status.textContent = currentWeather.label; status.classList.toggle("caution", (current.code >= 51 && current.code <= 82) || current.code >= 95); }
+    if (summary?.isConnected) { summary.querySelector("strong").textContent = "Condiciones previstas ahora"; summary.lastChild.textContent = `${currentWeather.label.toLowerCase()}, ${Math.round(current.temperature)}°. Viento ${Number.isFinite(current.wind) ? Math.round(current.wind) + " km/h" : "sin datos"}.`; }
+  } catch {
+    if (forecast.isConnected) forecast.textContent = "No se ha podido cargar la previsión por horas.";
+    if (status?.isConnected) status.textContent = "Tiempo no disponible";
+    if (summary?.isConnected) { summary.querySelector("strong").textContent = "Condiciones"; summary.lastChild.textContent = "No se ha podido cargar la previsión actual."; }
+  }
+}
 
 function sunsetEstimate(weather) {
   const sunset = weather?.daily?.sunset?.[0];
@@ -261,13 +292,14 @@ async function loadSunset(beach) {
 }
 
 function renderList() {
-  app.innerHTML = `<section><div class="screen-heading"><h1>Elige tu playa</h1><p>Tiempo, mar y webcam en un vistazo</p></div><div class="beach-list">${beaches.map((b) => `<button class="beach-row" data-beach="${b.id}" type="button"><span class="beach-symbol" aria-hidden="true">☀</span><span><span class="beach-name">${b.name}</span><span class="beach-meta">${b.town} · ${b.status}</span></span><span class="live">DIRECTO</span></button>`).join("")}</div></section>`;
+  app.innerHTML = `<section><div class="screen-heading"><h1>Elige tu playa</h1><p>Tiempo, mar y webcam en un vistazo</p></div><div class="beach-list">${beaches.map((b) => `<button class="beach-row" data-beach="${b.id}" type="button"><span class="beach-symbol" aria-hidden="true">☀</span><span><span class="beach-name">${b.name}</span><span class="beach-meta">${b.town}</span></span><span class="live">DIRECTO</span></button>`).join("")}</div></section>`;
   document.querySelectorAll("[data-beach]").forEach((button) => button.addEventListener("click", () => { window.location.hash = `#/playa/${button.dataset.beach}`; }));
 }
 
 function renderBeach(b) {
-  app.innerHTML = `<section><button class="back" type="button" id="back">‹ Todas las playas</button><header class="hero"><p class="eyebrow">${b.town.toUpperCase()} · AHORA</p><h1>${b.name}</h1><div class="status ${b.condition === "caution" ? "caution" : ""}">${b.status}</div>${liveCamera(b)}</header><div class="details"><p class="section-label">PREVISIÓN POR HORAS · HOY</p><div class="forecast">${hours(b.temp,b.waves)}</div><div class="quick-note" style="margin-top:20px"><span>✦</span><div><strong>Así está ahora</strong>${b.tip}</div></div><p class="section-label">CONDICIONES</p><div class="metrics">${metric(b.temp,"Temperatura")}${metric(b.wind,"Viento")}${metric(b.waves,"Oleaje")}${metric(b.uv,"Índice UV")}${metric(b.tide,"Próx. bajamar")}${metric(b.water,"Temperatura del agua")}</div><section class="surf"><p class="section-label">SURF</p><div class="surf-grid"><div><strong>${b.waves}</strong><span>Altura de ola</span></div><div><strong>${b.period}</strong><span>Periodo</span></div><div><strong>${b.swell}</strong><span>Dirección</span></div></div><p>${b.surf}</p></section><div class="practical">${b.practical.map((item) => `<span>${item}</span>`).join("")}</div><p class="update">Tiempo, mar y surf: datos de demostración · Puesta de sol: previsión real</p></div></section>`;
-  document.querySelector(".forecast").insertAdjacentHTML("afterend", dailySection(b.id));
+  app.innerHTML = `<section><button class="back" type="button" id="back">‹ Todas las playas</button><header class="hero"><p class="eyebrow">${b.town.toUpperCase()} · AHORA</p><h1>${b.name}</h1><div class="status ${b.condition === "caution" ? "caution" : ""}">Cargando tiempo…</div>${liveCamera(b)}</header><div class="details"><p class="section-label">PRÓXIMAS 24 HORAS</p><div class="forecast">Cargando previsión…</div><div class="quick-note" style="margin-top:20px"><span>✦</span><div><strong>Condiciones</strong>Cargando previsión…</div></div><p class="section-label">CONDICIONES</p><div class="metrics">${metric(b.temp,"Temperatura")}${metric(b.wind,"Viento")}${metric(b.waves,"Oleaje")}${metric(b.uv,"Índice UV")}${metric(b.tide,"Próx. bajamar")}${metric(b.water,"Temperatura del agua")}</div><section class="surf"><p class="section-label">SURF</p><div class="surf-grid"><div><strong>${b.waves}</strong><span>Altura de ola</span></div><div><strong>${b.period}</strong><span>Periodo</span></div><div><strong>${b.swell}</strong><span>Dirección</span></div></div><p>${b.surf}</p></section><div class="practical">${b.practical.map((item) => `<span>${item}</span>`).join("")}</div><p class="update">Tiempo, mar y surf: datos de demostración · Puesta de sol: previsión real</p></div></section>`;
+  document.querySelector(".hero .status").classList.remove("caution");
+  document.querySelector(".forecast").insertAdjacentHTML("afterend", `<p class="hourly-source">Previsión aproximada: <a href="https://open-meteo.com/en/docs" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · ☂ lluvia · ≋ viento</p>${dailySection(b.id)}`);
   const plan = beachPlans[b.id];
   const metrics = document.querySelector(".metrics");
   metrics.previousElementSibling.remove();
@@ -276,7 +308,8 @@ function renderBeach(b) {
   const oldSurf = document.querySelector(".surf");
   oldSurf.insertAdjacentHTML("beforebegin", surfSection(b.id));
   oldSurf.remove();
-  document.querySelector(".update").textContent = "Tiempo por horas: datos de demostración · Mareas, agua, puesta de sol y surf: previsiones";
+  document.querySelector(".update").textContent = "Tiempo, mareas, agua, puesta de sol y surf: previsiones; observa la webcam antes de ir";
+  loadHourly(b);
   loadTides(b);
   loadDaily(b);
   loadWaterTemperature(b);
