@@ -1,41 +1,27 @@
 const cameraDirectory = "https://www.webcamsdeasturias.com/las-playas-de-asturias/7/";
 
 const beaches = [
-  { id: "san-lorenzo", name: "San Lorenzo", town: "Gijón", webcam: true, temp: "22°", water: "19°", wind: "↗ 12 km/h", waves: "0,6 m", uv: "UV 5", tide: "15:42", status: "Buen día para playa", condition: "good" },
-  { id: "rodiles", name: "Rodiles", town: "Villaviciosa", webcam: true, temp: "21°", water: "18°", wind: "↗ 14 km/h", waves: "0,7 m", uv: "UV 5", tide: "15:38", status: "Buen día para playa", condition: "good" },
-  { id: "salinas", name: "Salinas", town: "Castrillón", webcam: true, temp: "21°", water: "18°", wind: "→ 18 km/h", waves: "0,9 m", uv: "UV 5", tide: "15:51", status: "Oleaje moderado", condition: "caution" },
-  { id: "aguilar", name: "Aguilar", town: "Muros de Nalón", webcam: true, temp: "20°", water: "18°", wind: "↗ 10 km/h", waves: "0,5 m", uv: "UV 4", tide: "15:47", status: "Buen día para playa", condition: "good" },
-  { id: "penarronda", name: "Peñarronda", town: "Tapia de Casariego", webcam: true, temp: "20°", water: "18°", wind: "↗ 17 km/h", waves: "0,8 m", uv: "UV 4", tide: "15:58", status: "Oleaje moderado", condition: "caution" }
+  { id:"san-lorenzo", name:"San Lorenzo", town:"Gijón", temp:"22°", water:"19°", wind:"↗ 12 km/h", waves:"0,6 m", period:"9 s", swell:"NO", uv:"UV 5", tide:"15:42", status:"Buen día para playa", condition:"good", tip:"Mar tranquilo y temperatura agradable. Buen momento para paseo, baño o terraza.", surf:"Suave y ordenado. Mejor para iniciación que para olas grandes.", practical:["Paseo marítimo","Acceso urbano","Servicios cercanos"] },
+  { id:"rodiles", name:"Rodiles", town:"Villaviciosa", temp:"21°", water:"18°", wind:"↗ 14 km/h", waves:"0,7 m", period:"10 s", swell:"NO", uv:"UV 5", tide:"15:38", status:"Buen día para playa", condition:"good", tip:"El viento es llevadero. Revisa la webcam antes de salir por si cambia el mar.", surf:"Olas con periodo medio. La marea cambia mucho la experiencia.", practical:["Arenal amplio","Entorno natural","Servicios de temporada"] },
+  { id:"salinas", name:"Salinas", town:"Castrillón", temp:"21°", water:"18°", wind:"→ 18 km/h", waves:"0,9 m", period:"8 s", swell:"N", uv:"UV 5", tide:"15:51", status:"Oleaje moderado", condition:"caution", tip:"Hay algo de mar. Para un paseo está bien; para el baño, mantén precaución.", surf:"Condiciones activas, con viento lateral. Consulta la webcam antes de entrar.", practical:["Paseo marítimo","Restauración","Ambiente surf"] },
+  { id:"aguilar", name:"Aguilar", town:"Muros de Nalón", temp:"20°", water:"18°", wind:"↗ 10 km/h", waves:"0,5 m", period:"8 s", swell:"NO", uv:"UV 4", tide:"15:47", status:"Buen día para playa", condition:"good", tip:"Condiciones suaves para disfrutar de la playa. Lleva protección solar aunque haya nubes.", surf:"Ola pequeña y suave. Revisa el punto de rompiente desde la webcam.", practical:["Arenal familiar","Entorno verde","Servicios de temporada"] },
+  { id:"penarronda", name:"Peñarronda", town:"Tapia de Casariego", temp:"20°", water:"18°", wind:"↗ 17 km/h", waves:"0,8 m", period:"9 s", swell:"NO", uv:"UV 4", tide:"15:58", status:"Oleaje moderado", condition:"caution", tip:"Viento y olas moderados. Mira la webcam para decidir si te compensa ir ahora.", surf:"Mar de fondo moderado. El viento puede afectar la calidad de la ola.", practical:["Arenal amplio","Entorno natural","Consulta la webcam"] }
 ];
 
 const app = document.querySelector("#app");
-
-function metric(value, label) {
-  return `<div class="metric"><strong>${value}</strong><span>${label}</span></div>`;
-}
+const metric = (value, label) => `<div class="metric"><strong>${value}</strong><span>${label}</span></div>`;
+const hours = (temp, waves) => ["Ahora", "16:00", "18:00", "20:00"].map((hour, i) => `<div class="hour"><time>${hour}</time><b>${i === 0 ? temp : `${Number.parseInt(temp, 10) - (i > 2 ? 2 : 1)}°`}</b><small>${i < 2 ? `↗ ${waves}` : "↗ suave"}</small></div>`).join("");
 
 function renderList() {
-  app.innerHTML = `<section><div class="screen-heading"><h1>Elige tu playa</h1><p>Consulta cómo está ahora mismo</p></div><div class="beach-list">${beaches.map((beach) => `<button class="beach-row" data-beach="${beach.id}" type="button"><span class="beach-symbol" aria-hidden="true">☀</span><span><span class="beach-name">${beach.name}</span><span class="beach-meta">${beach.town}${beach.webcam ? " · Webcam disponible" : ""}</span></span>${beach.webcam ? '<span class="live">EN DIRECTO</span>' : ""}</button>`).join("")}</div></section>`;
-  document.querySelectorAll("[data-beach]").forEach((button) => button.addEventListener("click", () => {
-    window.location.hash = `#/playa/${button.dataset.beach}`;
-  }));
+  app.innerHTML = `<section><div class="screen-heading"><h1>Elige tu playa</h1><p>Tiempo, mar y webcam en un vistazo</p></div><div class="beach-list">${beaches.map((b) => `<button class="beach-row" data-beach="${b.id}" type="button"><span class="beach-symbol" aria-hidden="true">☀</span><span><span class="beach-name">${b.name}</span><span class="beach-meta">${b.town} · ${b.status}</span></span><span class="live">DIRECTO</span></button>`).join("")}</div></section>`;
+  document.querySelectorAll("[data-beach]").forEach((button) => button.addEventListener("click", () => { window.location.hash = `#/playa/${button.dataset.beach}`; }));
 }
 
-function renderBeach(beach) {
-  const webcam = beach.webcam
-    ? `<a class="webcam-link" href="${cameraDirectory}" target="_blank" rel="noopener noreferrer">↗ Ver webcam en directo</a><p class="source-note">Se abre en la fuente original</p>`
-    : `<div class="no-cam"><strong>Webcam no disponible</strong>Esta playa todavía no tiene una fuente enlazada.</div>`;
-  app.innerHTML = `<section><button class="back" type="button" id="back">‹ Todas las playas</button><header class="hero"><p class="eyebrow">${beach.town.toUpperCase()} · AHORA</p><h1>${beach.name}</h1><div class="status ${beach.condition === "caution" ? "caution" : ""}">${beach.status}</div></header><div class="details">${webcam}<div class="metrics">${metric(beach.temp, "Temperatura")}${metric(beach.wind, "Viento")}${metric(beach.waves, "Oleaje")}${metric(beach.uv, "Índice UV")}${metric(beach.tide, "Próx. bajamar")}${metric(beach.water, "Temperatura del agua")}</div><p class="update">Datos de demostración · Actualizado hace 10 min</p></div></section>`;
+function renderBeach(b) {
+  app.innerHTML = `<section><button class="back" type="button" id="back">‹ Todas las playas</button><header class="hero"><p class="eyebrow">${b.town.toUpperCase()} · AHORA</p><h1>${b.name}</h1><div class="status ${b.condition === "caution" ? "caution" : ""}">${b.status}</div></header><div class="details"><a class="webcam-link" href="${cameraDirectory}" target="_blank" rel="noopener noreferrer">↗ Ver webcam en directo</a><p class="source-note">Se abre en la fuente original</p><div class="quick-note"><span>✦</span><div><strong>Así está ahora</strong>${b.tip}</div></div><p class="section-label">CONDICIONES</p><div class="metrics">${metric(b.temp,"Temperatura")}${metric(b.wind,"Viento")}${metric(b.waves,"Oleaje")}${metric(b.uv,"Índice UV")}${metric(b.tide,"Próx. bajamar")}${metric(b.water,"Temperatura del agua")}</div><p class="section-label" style="margin-top:21px">HOY</p><div class="forecast">${hours(b.temp,b.waves)}</div><section class="surf"><p class="section-label">SURF</p><div class="surf-grid"><div><strong>${b.waves}</strong><span>Altura de ola</span></div><div><strong>${b.period}</strong><span>Periodo</span></div><div><strong>${b.swell}</strong><span>Dirección</span></div></div><p>${b.surf}</p></section><div class="practical">${b.practical.map((item) => `<span>${item}</span>`).join("")}</div><p class="update">Datos de demostración · Actualizado hace 10 min</p></div></section>`;
   document.querySelector("#back").addEventListener("click", () => { window.location.hash = "#/playas"; });
 }
 
-function render() {
-  const id = window.location.hash.replace("#/playa/", "");
-  const beach = beaches.find((item) => item.id === id);
-  beach ? renderBeach(beach) : renderList();
-}
-
-window.addEventListener("hashchange", render);
-render();
-
+function render() { const id = window.location.hash.replace("#/playa/", ""); const beach = beaches.find((item) => item.id === id); beach ? renderBeach(beach) : renderList(); }
+window.addEventListener("hashchange", render); render();
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
