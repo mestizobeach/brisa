@@ -97,17 +97,67 @@ async function loadTides(beach) {
 
 async function loadWaterTemperature(beach) {
   const value = document.querySelector(`#water-${beach.id}`);
-  const [latitude, longitude] = beachCoordinates[beach.id];
-  const url = new URL("https://marine-api.open-meteo.com/v1/marine");
-  url.search = new URLSearchParams({ latitude, longitude, current: "sea_surface_temperature", timezone: "Europe/Madrid", cell_selection: "sea" });
   try {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const temperature = (await response.json()).current?.sea_surface_temperature;
+    const temperature = (await marineForecast(beach)).current?.sea_surface_temperature;
     if (typeof temperature !== "number" || !Number.isFinite(temperature)) throw new Error("Temperatura no disponible");
     if (value?.isConnected) value.innerHTML = `${temperature.toFixed(1).replace(".", ",")}° <small>C</small>`;
   } catch {
     if (value?.isConnected) value.textContent = "Sin datos";
+  }
+}
+const marineRequests = new Map();
+function marineForecast(beach) {
+  const key = `${beach.id}:${madridToday()}`;
+  if (!marineRequests.has(key)) {
+    const [latitude, longitude] = beachCoordinates[beach.id];
+    const url = new URL("https://marine-api.open-meteo.com/v1/marine");
+    url.search = new URLSearchParams({ latitude, longitude, current: "sea_surface_temperature", hourly: "wave_height,wave_period,wave_direction,swell_wave_height", timezone: "Europe/Madrid", forecast_days: "1", cell_selection: "sea" });
+    marineRequests.set(key, fetch(url).then((response) => {
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    }).catch((error) => { marineRequests.delete(key); throw error; }));
+  }
+  return marineRequests.get(key);
+}
+const surfSection = (id) => `<section class="surf-panel" id="surf-${id}" aria-label="Previsión de surf de hoy"><div class="surf-top"><div><p class="section-label">SURF · HOY</p><h2>Olas por horas</h2></div><span aria-hidden="true">≋</span></div><div class="surf-main"><div><strong id="surf-height-${id}">—</strong><small id="surf-selected-hour-${id}">Cargando previsión…</small></div><div class="surf-facts"><span>Periodo <strong id="surf-period-${id}">—</strong></span><span>Dirección <strong id="surf-direction-${id}">—</strong></span><span>Mar de fondo <strong id="surf-swell-${id}">—</strong></span></div></div><p class="surf-chart-label">ALTURA DE OLA A CADA HORA · DESLIZA Y TOCA</p><div class="surf-hours" id="surf-hours-${id}" aria-label="Altura de ola por hora"></div><p class="surf-note">Altura significativa prevista mar adentro. La ola al romper puede ser diferente. Datos: <a href="https://open-meteo.com/en/docs/marine-weather-api" target="_blank" rel="noopener noreferrer">Open-Meteo</a> / <a href="https://www.dwd.de/" target="_blank" rel="noopener noreferrer">DWD</a>.</p></section>`;
+const waveNumber = (value) => typeof value === "number" && Number.isFinite(value) ? value.toFixed(1).replace(".", ",") : "—";
+const waveDirection = (degrees) => {
+  if (typeof degrees !== "number" || !Number.isFinite(degrees)) return "—";
+  return ["N", "NE", "E", "SE", "S", "SO", "O", "NO"][Math.round(degrees / 45) % 8];
+};
+
+async function loadSurf(beach) {
+  const panel = document.querySelector(`#surf-${beach.id}`);
+  if (!panel) return;
+  try {
+    const hourly = (await marineForecast(beach)).hourly;
+    if (!hourly?.time?.length || !["wave_height", "wave_period", "wave_direction", "swell_wave_height"].every((key) => Array.isArray(hourly[key]))) throw new Error("Previsión incompleta");
+    const rows = hourly.time.map((time, i) => ({ time, height: hourly.wave_height[i], period: hourly.wave_period[i], direction: hourly.wave_direction[i], swell: hourly.swell_wave_height[i] })).filter((row) => row.time.startsWith(madridToday()));
+    if (!rows.length || !rows.some((row) => typeof row.height === "number")) throw new Error("No hay olas para hoy");
+    if (!panel.isConnected) return;
+    const hours = panel.querySelector(`#surf-hours-${beach.id}`);
+    const maximum = Math.max(1, ...rows.map((row) => typeof row.height === "number" ? row.height : 0));
+    const now = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Madrid", hour: "2-digit", hourCycle: "h23" }).format(new Date());
+    let selected = Math.max(0, rows.findIndex((row) => row.time.slice(11, 13) === now));
+    const show = (index) => {
+      const row = rows[index];
+      panel.querySelector(`#surf-height-${beach.id}`).textContent = `${waveNumber(row.height)} m`;
+      panel.querySelector(`#surf-selected-hour-${beach.id}`).textContent = `A las ${row.time.slice(11, 16)}`;
+      panel.querySelector(`#surf-period-${beach.id}`).textContent = `${waveNumber(row.period)} s`;
+      panel.querySelector(`#surf-direction-${beach.id}`).textContent = waveDirection(row.direction);
+      panel.querySelector(`#surf-swell-${beach.id}`).textContent = `${waveNumber(row.swell)} m`;
+      hours.querySelectorAll(".surf-hour").forEach((button, i) => {
+        button.classList.toggle("selected", i === index);
+        button.setAttribute("aria-pressed", String(i === index));
+      });
+    };
+    hours.innerHTML = rows.map((row, i) => `<button class="surf-hour" type="button" data-hour="${i}" aria-label="${row.time.slice(11, 16)}, ola ${waveNumber(row.height)} metros"><time>${row.time.slice(11, 13)}</time><span class="surf-bar"><span style="height:${Math.max(12, Math.round((Number(row.height) || 0) / maximum * 64))}px"></span></span><strong>${waveNumber(row.height)}</strong></button>`).join("");
+    hours.querySelectorAll(".surf-hour").forEach((button) => button.addEventListener("click", () => show(Number(button.dataset.hour))));
+    show(selected);
+    const chosen = hours.children[selected];
+    hours.scrollLeft = chosen.offsetLeft - hours.offsetLeft - hours.clientWidth / 2 + chosen.clientWidth / 2;
+  } catch {
+    if (panel.isConnected) panel.querySelector(`#surf-hours-${beach.id}`).textContent = "No se ha podido cargar la previsión de olas de hoy.";
   }
 }
 const metric = (value, label) => `<div class="metric"><strong>${value}</strong><span>${label}</span></div>`;
@@ -177,9 +227,13 @@ function renderBeach(b) {
   metrics.previousElementSibling.remove();
   metrics.insertAdjacentHTML("afterend", `${tideSection(b.id)}<section class="sunset-card" id="sunset-${b.id}" aria-live="polite"><div class="sunset-head"><span class="sunset-icon" aria-hidden="true">◒</span><div><small>PUESTA DE SOL · HOY</small><strong>Cargando…</strong></div></div></section>`);
   metrics.remove();
-  document.querySelector(".update").textContent = "Tiempo y surf: datos de demostración · Mareas, agua y puesta de sol: predicciones";
+  const oldSurf = document.querySelector(".surf");
+  oldSurf.insertAdjacentHTML("beforebegin", surfSection(b.id));
+  oldSurf.remove();
+  document.querySelector(".update").textContent = "Tiempo por horas: datos de demostración · Mareas, agua, puesta de sol y surf: previsiones";
   loadTides(b);
   loadWaterTemperature(b);
+  loadSurf(b);
   loadSunset(b);
   const image = beachImages[b.id];
   if (image) {
