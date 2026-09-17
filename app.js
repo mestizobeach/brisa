@@ -9,6 +9,13 @@ const beaches = [
 ];
 
 const app = document.querySelector("#app");
+const beachPlans = {
+  "san-lorenzo": { place: "La Mar y Morena", detail: "Bar musical frente a la playa · consultar su programación" },
+  rodiles: { place: "Mestizo", detail: "Chiringuito de playa · conciertos y sesiones puntuales en temporada" },
+  salinas: { place: "La Luna", detail: "Bar frente a la playa · consultar agenda del local" },
+  aguilar: { place: "Planes por confirmar", detail: "Aún no hay chiringuitos ni conciertos verificados en Brisa" },
+  penarronda: { place: "Planes por confirmar", detail: "Aún no hay chiringuitos ni conciertos verificados en Brisa" }
+};
 const metric = (value, label) => `<div class="metric"><strong>${value}</strong><span>${label}</span></div>`;
 const hours = (temp, waves) => ["Ahora", "16:00", "18:00", "20:00"].map((hour, i) => `<div class="hour"><time>${hour}</time><b>${i === 0 ? temp : `${Number.parseInt(temp, 10) - (i > 2 ? 2 : 1)}°`}</b><small>${i < 2 ? `↗ ${waves}` : "↗ suave"}</small></div>`).join("");
 
@@ -19,6 +26,8 @@ function renderList() {
 
 function renderBeach(b) {
   app.innerHTML = `<section><button class="back" type="button" id="back">‹ Todas las playas</button><header class="hero"><p class="eyebrow">${b.town.toUpperCase()} · AHORA</p><h1>${b.name}</h1><div class="status ${b.condition === "caution" ? "caution" : ""}">${b.status}</div></header><div class="details"><a class="webcam-link" href="${cameraDirectory}" target="_blank" rel="noopener noreferrer">↗ Ver webcam en directo</a><p class="source-note">Se abre en la fuente original</p><div class="quick-note"><span>✦</span><div><strong>Así está ahora</strong>${b.tip}</div></div><p class="section-label">CONDICIONES</p><div class="metrics">${metric(b.temp,"Temperatura")}${metric(b.wind,"Viento")}${metric(b.waves,"Oleaje")}${metric(b.uv,"Índice UV")}${metric(b.tide,"Próx. bajamar")}${metric(b.water,"Temperatura del agua")}</div><p class="section-label" style="margin-top:21px">HOY</p><div class="forecast">${hours(b.temp,b.waves)}</div><section class="surf"><p class="section-label">SURF</p><div class="surf-grid"><div><strong>${b.waves}</strong><span>Altura de ola</span></div><div><strong>${b.period}</strong><span>Periodo</span></div><div><strong>${b.swell}</strong><span>Dirección</span></div></div><p>${b.surf}</p></section><div class="practical">${b.practical.map((item) => `<span>${item}</span>`).join("")}</div><p class="update">Datos de demostración · Actualizado hace 10 min</p></div></section>`;
+  const plan = beachPlans[b.id];
+  document.querySelector(".practical").insertAdjacentHTML("afterend", `<div class="quick-note" style="margin-top:20px"><span>♫</span><div><strong>Plan en la playa · ${plan.place}</strong>${plan.detail}<br><span style="font-size:12px;color:var(--muted)">Conciertos: se mostrarán aquí cuando estén confirmados.</span></div></div>`);
   document.querySelector("#back").addEventListener("click", () => { window.location.hash = "#/playas"; });
 }
 
