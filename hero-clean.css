@@ -1,0 +1,4 @@
+.hero{min-height:150px;padding:20px;color:#123143;background:linear-gradient(145deg,#c6e9e9,#edf4e5 68%,#f8e4bc)}
+.hero:after{display:none}
+.hero h1{font-size:32px}
+.hero .status{margin-top:27px;color:#123143}
