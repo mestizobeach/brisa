@@ -25,6 +25,11 @@ const beachImages = {
   aguilar: { file: "Playa_Del_Aguilar_Asturias_(7200185).jpeg", author: "Francisco Rodriguez", license: "CC BY 3.0", page: "https://commons.wikimedia.org/wiki/File:Playa_Del_Aguilar_Asturias_(7200185).jpeg" },
   penarronda: { file: "Playa-Penarronda.jpg", author: "Marta Gonzalez", license: "Dominio público", page: "https://commons.wikimedia.org/wiki/File:Playa-Penarronda.jpg" }
 };
+const beachCoordinates = {
+  "san-lorenzo": [43.543, -5.661], rodiles: [43.534, -5.384],
+  salinas: [43.578, -5.964], aguilar: [43.557, -6.109],
+  penarronda: [43.553, -6.996]
+};
 const metric = (value, label) => `<div class="metric"><strong>${value}</strong><span>${label}</span></div>`;
 const hours = (temp, waves) => {
   const temperature = Number.parseInt(temp, 10);
@@ -38,14 +43,58 @@ const hours = (temp, waves) => {
   return forecast.map(([hour, icon, degree, rain, wind]) => `<div class="hour"><time>${hour}</time><i aria-hidden="true">${icon}</i><b>${degree}°</b><small>${rain} · ${wind}</small></div>`).join("");
 };
 
+function sunsetEstimate(weather) {
+  const sunset = weather?.daily?.sunset?.[0];
+  const hourly = weather?.hourly;
+  if (!sunset || !hourly?.time?.length || !["cloud_cover", "cloud_cover_low", "cloud_cover_high", "visibility", "precipitation_probability"].every((field) => Array.isArray(hourly[field]))) throw new Error("Previsión incompleta");
+  const sunsetMinutes = Number(sunset.slice(11, 13)) * 60 + Number(sunset.slice(14, 16));
+  const date = sunset.slice(0, 10);
+  const candidates = hourly.time.map((time, i) => ({ time, i, distance: Math.abs(Number(time.slice(11, 13)) * 60 - sunsetMinutes) }))
+    .filter((item) => item.time.startsWith(date))
+    .sort((a, b) => a.distance - b.distance).slice(0, 2);
+  if (!candidates.length) throw new Error("Faltan horas cercanas al atardecer");
+  const average = (field) => candidates.reduce((sum, item) => sum + (Number(hourly[field]?.[item.i]) || 0), 0) / candidates.length;
+  const clouds = average("cloud_cover");
+  const low = average("cloud_cover_low");
+  const high = average("cloud_cover_high");
+  const visibility = average("visibility");
+  const rain = average("precipitation_probability");
+  const obscured = low >= 70 || clouds >= 85 || visibility < 3500 || rain >= 65;
+  const colorful = !obscured && low < 45 && high >= 20 && high <= 75 && visibility >= 10000 && rain < 30;
+  const visibilityText = obscured ? "Poco visible" : clouds >= 65 || visibility < 8000 ? "Visibilidad media" : "Buena visibilidad";
+  const intensity = obscured ? "Baja" : colorful ? "Alta" : "Media";
+  const color = obscured ? "Poco visible" : colorful ? "Muy naranja, posible" : "Tonos cálidos suaves";
+  const description = obscured ? "Las nubes bajas, la lluvia o la bruma podrían tapar la caída del sol." : colorful ? "Nubes altas y horizonte relativamente despejado: buenas opciones de un cielo naranja." : "Podrían verse tonos cálidos, según cambien las nubes a última hora.";
+  return { time: sunset.slice(11, 16), visibilityText, intensity, color, description, clouds: Math.round(clouds) };
+}
+
+async function loadSunset(beach) {
+  const card = document.querySelector(`#sunset-${beach.id}`);
+  if (!card) return;
+  const [latitude, longitude] = beachCoordinates[beach.id];
+  const url = new URL("https://api.open-meteo.com/v1/forecast");
+  url.search = new URLSearchParams({ latitude, longitude, daily: "sunset", hourly: "cloud_cover,cloud_cover_low,cloud_cover_high,visibility,precipitation_probability", timezone: "Europe/Madrid", forecast_days: "1" });
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const estimate = sunsetEstimate(await response.json());
+    if (!card.isConnected) return;
+    card.innerHTML = `<div class="sunset-head"><span class="sunset-icon" aria-hidden="true">◒</span><div><small>PUESTA DE SOL · HOY</small><strong>${estimate.time}</strong></div></div><div class="sunset-outlook"><strong>${estimate.visibilityText}</strong><span>${estimate.color}</span></div><div class="sunset-meter" aria-label="Intensidad estimada ${estimate.intensity.toLowerCase()}"><span class="${estimate.intensity.toLowerCase()}"></span></div><p>${estimate.description}</p><small class="sunset-source">Intensidad estimada: ${estimate.intensity} · Nubosidad ${estimate.clouds}% · <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a><br>La vista desde la arena también depende del horizonte.</small>`;
+  } catch {
+    if (card.isConnected) card.innerHTML = `<div class="sunset-head"><span class="sunset-icon" aria-hidden="true">◒</span><div><small>PUESTA DE SOL · HOY</small><strong>Sin datos</strong></div></div><p>No se ha podido cargar la previsión de hoy. Inténtalo de nuevo más tarde.</p>`;
+  }
+}
+
 function renderList() {
   app.innerHTML = `<section><div class="screen-heading"><h1>Elige tu playa</h1><p>Tiempo, mar y webcam en un vistazo</p></div><div class="beach-list">${beaches.map((b) => `<button class="beach-row" data-beach="${b.id}" type="button"><span class="beach-symbol" aria-hidden="true">☀</span><span><span class="beach-name">${b.name}</span><span class="beach-meta">${b.town} · ${b.status}</span></span><span class="live">DIRECTO</span></button>`).join("")}</div></section>`;
   document.querySelectorAll("[data-beach]").forEach((button) => button.addEventListener("click", () => { window.location.hash = `#/playa/${button.dataset.beach}`; }));
 }
 
 function renderBeach(b) {
-  app.innerHTML = `<section><button class="back" type="button" id="back">‹ Todas las playas</button><header class="hero"><p class="eyebrow">${b.town.toUpperCase()} · AHORA</p><h1>${b.name}</h1><div class="status ${b.condition === "caution" ? "caution" : ""}">${b.status}</div></header><div class="details"><a class="webcam-link" href="${cameraDirectory}" target="_blank" rel="noopener noreferrer">↗ Ver webcam en directo</a><p class="source-note">Se abre en la fuente original</p><p class="section-label">PREVISIÓN POR HORAS · HOY</p><div class="forecast">${hours(b.temp,b.waves)}</div><div class="quick-note" style="margin-top:20px"><span>✦</span><div><strong>Así está ahora</strong>${b.tip}</div></div><p class="section-label">CONDICIONES</p><div class="metrics">${metric(b.temp,"Temperatura")}${metric(b.wind,"Viento")}${metric(b.waves,"Oleaje")}${metric(b.uv,"Índice UV")}${metric(b.tide,"Próx. bajamar")}${metric(b.water,"Temperatura del agua")}</div><section class="surf"><p class="section-label">SURF</p><div class="surf-grid"><div><strong>${b.waves}</strong><span>Altura de ola</span></div><div><strong>${b.period}</strong><span>Periodo</span></div><div><strong>${b.swell}</strong><span>Dirección</span></div></div><p>${b.surf}</p></section><div class="practical">${b.practical.map((item) => `<span>${item}</span>`).join("")}</div><p class="update">Datos de demostración · Actualizado hace 10 min</p></div></section>`;
+  app.innerHTML = `<section><button class="back" type="button" id="back">‹ Todas las playas</button><header class="hero"><p class="eyebrow">${b.town.toUpperCase()} · AHORA</p><h1>${b.name}</h1><div class="status ${b.condition === "caution" ? "caution" : ""}">${b.status}</div></header><div class="details"><a class="webcam-link" href="${cameraDirectory}" target="_blank" rel="noopener noreferrer">↗ Ver webcam en directo</a><p class="source-note">Se abre en la fuente original</p><p class="section-label">PREVISIÓN POR HORAS · HOY</p><div class="forecast">${hours(b.temp,b.waves)}</div><div class="quick-note" style="margin-top:20px"><span>✦</span><div><strong>Así está ahora</strong>${b.tip}</div></div><p class="section-label">CONDICIONES</p><div class="metrics">${metric(b.temp,"Temperatura")}${metric(b.wind,"Viento")}${metric(b.waves,"Oleaje")}${metric(b.uv,"Índice UV")}${metric(b.tide,"Próx. bajamar")}${metric(b.water,"Temperatura del agua")}</div><section class="surf"><p class="section-label">SURF</p><div class="surf-grid"><div><strong>${b.waves}</strong><span>Altura de ola</span></div><div><strong>${b.period}</strong><span>Periodo</span></div><div><strong>${b.swell}</strong><span>Dirección</span></div></div><p>${b.surf}</p></section><div class="practical">${b.practical.map((item) => `<span>${item}</span>`).join("")}</div><p class="update">Tiempo, mar y surf: datos de demostración · Puesta de sol: previsión real</p></div></section>`;
   const plan = beachPlans[b.id];
+  document.querySelector(".metrics").insertAdjacentHTML("afterend", `<section class="sunset-card" id="sunset-${b.id}" aria-live="polite"><div class="sunset-head"><span class="sunset-icon" aria-hidden="true">◒</span><div><small>PUESTA DE SOL · HOY</small><strong>Cargando…</strong></div></div></section>`);
+  loadSunset(b);
   const image = beachImages[b.id];
   if (image) {
     const hero = document.querySelector(".hero");
