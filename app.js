@@ -10,11 +10,40 @@ const beaches = [
 
 const app = document.querySelector("#app");
 const beachPlans = {
-  "san-lorenzo": { place: "La Mar y Morena", detail: "Bar musical frente a la playa · consultar su programación", parking: "Aparcamiento disponible en el entorno urbano · precio no confirmado" },
-  rodiles: { place: "Mestizo", detail: "Chiringuito de playa · conciertos y sesiones puntuales en temporada", parking: "Aparcamiento y servicios de temporada junto al arenal" },
-  salinas: { place: "Agenda de Salinas", detail: "Festivales y conciertos de verano en la zona", parking: "Aparcamiento público cercano · más de 100 plazas referenciadas" },
-  aguilar: { place: "Restaurante Playa de Aguilar", detail: "Restaurante cercano y oferta de chiringuitos en temporada", parking: "Parking vigilado y regulado en temporada · pago para no residentes" },
-  penarronda: { place: "Chiringuito Peñarronda", detail: "Chiringuito junto a la escuela de surf", parking: "Aparcamiento amplio junto a la playa · precio no confirmado" }
+  "san-lorenzo": { parking: "Aparcamiento disponible en el entorno urbano · precio no confirmado" },
+  rodiles: { parking: "Aparcamiento y servicios de temporada junto al arenal" },
+  salinas: { parking: "Aparcamiento público cercano · más de 100 plazas referenciadas" },
+  aguilar: { parking: "Parking vigilado y regulado en temporada · pago para no residentes" },
+  penarronda: { parking: "Aparcamiento amplio junto a la playa · precio no confirmado" }
+};
+const beachFood = {
+  "san-lorenzo": [
+    { name: "Ambigú Lounge", kind: "Terraza", place: "Frente a San Lorenzo", detail: "Comida informal, bebidas y vistas a la playa.", icon: "✺", url: "https://ambigu-bellavista.com/espacio/", link: "Web" },
+    { name: "Topolino", kind: "Restaurante", place: "Frente a la escalera 14", detail: "Cocina asturiana y menú diario.", icon: "◈", url: "https://www.restaurantetopolino.es/", link: "Web" },
+    { name: "Umami", kind: "Restaurante", place: "En el Muro de San Lorenzo", detail: "Cocina y encuentros frente al mar.", icon: "◈", url: "https://umamigijon.com/nueva/", link: "Web" }
+  ],
+  rodiles: [
+    { name: "Mestizo", kind: "Chiringuito", place: "Frente a Rodiles", detail: "Pizzas, bebidas y música de temporada.", icon: "✺", url: "https://www.instagram.com/mestizo.rodiles/", link: "Instagram" },
+    { name: "Entrepeñas", kind: "Bar restaurante", place: "Acceso a la playa", detail: "Comida y terraza cerca del arenal.", icon: "◈", url: "https://www.tripadvisor.es/Restaurant_Review-g608997-d12962649-Reviews-Cafe_Bar_Restaurante_Entrepenas-Villaviciosa_Asturias.html", link: "Ficha" },
+    { name: "Bar Miami", kind: "Bar", place: "Zona de Rodiles", detail: "Comida casera junto a la playa.", icon: "☕", url: "https://mapcarta.com/es/W896355059", link: "Ubicación" }
+  ],
+  salinas: [
+    { name: "Ewan Salinas", kind: "Restaurante terraza", place: "Paseo de Salinas", detail: "Cocina informal y gran terraza frente al mar.", icon: "✺", url: "https://www.instagram.com/ewan_salinas/", link: "Instagram" },
+    { name: "Real Balneario", kind: "Restaurante", place: "Junto a la playa", detail: "Cocina de producto y terraza con vistas.", icon: "◈", url: "https://www.realbalneario.com/es/", link: "Web" },
+    { name: "Agüita", kind: "Bar restaurante", place: "Frente a Salinas", detail: "Desayunos, comidas y terraza exterior.", icon: "☕", url: "https://reddepueblosdelsurf.com/listing/aguita/", link: "Ficha" }
+  ],
+  aguilar: [
+    { name: "Restaurante Playa de Aguilar", kind: "Restaurante", place: "A un paso de la playa", detail: "Cocina asturiana y terraza en el entorno de Aguilar.", icon: "◈", url: "https://restauranteplayadeaguilar.com/", link: "Web" }
+  ],
+  penarronda: [
+    { name: "Bar Lua", kind: "Chiringuito", place: "Playa de Peñarronda", detail: "Bar de playa en Barres.", icon: "✺", url: "https://www.castropol.es/bar-cafeteria", link: "Ficha" },
+    { name: "Bar Parajes", kind: "Bar restaurante", place: "Playa de Peñarronda", detail: "Comida y terraza cerca del arenal.", icon: "◈", url: "https://www.castropol.es/bar-cafeteria", link: "Ficha" },
+    { name: "Bar Toni", kind: "Bar", place: "Playa de Peñarronda", detail: "Otra opción junto a la playa, en Barres.", icon: "☕", url: "https://www.castropol.es/bar-cafeteria", link: "Ficha" }
+  ]
+};
+const foodSection = (id) => {
+  const places = beachFood[id];
+  return `<section class="food-section"><div class="food-heading"><div><p class="section-label">PARA COMER Y TOMAR ALGO</p><h2>Chiringuitos y restaurantes</h2></div><span>${places.length}</span></div><div class="food-list">${places.map((place) => `<article class="food-card"><span class="food-icon" aria-hidden="true">${place.icon}</span><div class="food-content"><span class="food-kind">${place.kind}</span><h3>${place.name}</h3><p class="food-place">${place.place}</p><p class="food-detail">${place.detail}</p><a href="${place.url}" target="_blank" rel="noopener noreferrer">↗ ${place.link}</a></div></article>`).join("")}</div><p class="food-note">Locales junto a la playa que hemos podido verificar. Consulta sus horarios antes de ir.</p></section>`;
 };
 // Fotografías reutilizables. Se cargan desde Wikimedia Commons y mantienen enlace
 // directo a autoría y licencia para que la atribución siempre sea visible.
@@ -103,7 +132,7 @@ function renderBeach(b) {
     hero.style.backgroundPosition = "center";
     hero.insertAdjacentHTML("beforeend", `<a href="${image.page}" target="_blank" rel="noopener noreferrer" style="position:absolute;right:18px;bottom:16px;color:#fff;background:rgba(0,0,0,.45);border-radius:999px;padding:7px 10px;font-size:11px;text-decoration:none;z-index:2">Foto: ${image.author} · ${image.license}</a>`);
   }
-  document.querySelector(".practical").insertAdjacentHTML("afterend", `<div class="quick-note" style="margin-top:20px"><span>🅿</span><div><strong>Aparcamiento</strong>${plan.parking}</div></div><div class="quick-note"><span>♫</span><div><strong>Plan en la playa · ${plan.place}</strong>${plan.detail}<br><span style="font-size:12px;color:var(--muted)">Conciertos: se mostrarán aquí cuando estén confirmados.</span></div></div>`);
+  document.querySelector(".practical").insertAdjacentHTML("afterend", `<div class="quick-note" style="margin-top:20px"><span>🅿</span><div><strong>Aparcamiento</strong>${plan.parking}</div></div>${foodSection(b.id)}<div class="quick-note" style="margin-top:20px"><span>♫</span><div><strong>Conciertos</strong>Se mostrarán aquí cuando estén confirmados.</div></div>`);
   document.querySelector("#back").addEventListener("click", () => { window.location.hash = "#/playas"; });
 }
 
