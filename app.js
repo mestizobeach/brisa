@@ -26,7 +26,17 @@ const beachImages = {
   penarronda: { file: "Playa-Penarronda.jpg", author: "Marta Gonzalez", license: "Dominio público", page: "https://commons.wikimedia.org/wiki/File:Playa-Penarronda.jpg" }
 };
 const metric = (value, label) => `<div class="metric"><strong>${value}</strong><span>${label}</span></div>`;
-const hours = (temp, waves) => ["Ahora", "16:00", "18:00", "20:00"].map((hour, i) => `<div class="hour"><time>${hour}</time><b>${i === 0 ? temp : `${Number.parseInt(temp, 10) - (i > 2 ? 2 : 1)}°`}</b><small>${i < 2 ? `↗ ${waves}` : "↗ suave"}</small></div>`).join("");
+const hours = (temp, waves) => {
+  const temperature = Number.parseInt(temp, 10);
+  const forecast = [
+    ["Ahora", "☀", temperature, "0%", "↗ 12"], ["15", "☀", temperature, "0%", "↗ 13"],
+    ["16", "⛅", temperature - 1, "0%", "↗ 14"], ["17", "⛅", temperature - 1, "5%", "↗ 15"],
+    ["18", "☁", temperature - 2, "10%", "→ 14"], ["19", "☁", temperature - 2, "10%", "→ 12"],
+    ["20", "☾", temperature - 3, "5%", "↘ 9"], ["21", "☾", temperature - 3, "5%", "↘ 8"],
+    ["22", "☾", temperature - 4, "0%", "↓ 7"], ["23", "☾", temperature - 4, "0%", "↓ 6"]
+  ];
+  return forecast.map(([hour, icon, degree, rain, wind]) => `<div class="hour"><time>${hour}</time><i aria-hidden="true">${icon}</i><b>${degree}°</b><small>${rain} · ${wind}</small></div>`).join("");
+};
 
 function renderList() {
   app.innerHTML = `<section><div class="screen-heading"><h1>Elige tu playa</h1><p>Tiempo, mar y webcam en un vistazo</p></div><div class="beach-list">${beaches.map((b) => `<button class="beach-row" data-beach="${b.id}" type="button"><span class="beach-symbol" aria-hidden="true">☀</span><span><span class="beach-name">${b.name}</span><span class="beach-meta">${b.town} · ${b.status}</span></span><span class="live">DIRECTO</span></button>`).join("")}</div></section>`;
@@ -34,7 +44,7 @@ function renderList() {
 }
 
 function renderBeach(b) {
-  app.innerHTML = `<section><button class="back" type="button" id="back">‹ Todas las playas</button><header class="hero"><p class="eyebrow">${b.town.toUpperCase()} · AHORA</p><h1>${b.name}</h1><div class="status ${b.condition === "caution" ? "caution" : ""}">${b.status}</div></header><div class="details"><a class="webcam-link" href="${cameraDirectory}" target="_blank" rel="noopener noreferrer">↗ Ver webcam en directo</a><p class="source-note">Se abre en la fuente original</p><div class="quick-note"><span>✦</span><div><strong>Así está ahora</strong>${b.tip}</div></div><p class="section-label">CONDICIONES</p><div class="metrics">${metric(b.temp,"Temperatura")}${metric(b.wind,"Viento")}${metric(b.waves,"Oleaje")}${metric(b.uv,"Índice UV")}${metric(b.tide,"Próx. bajamar")}${metric(b.water,"Temperatura del agua")}</div><p class="section-label" style="margin-top:21px">HOY</p><div class="forecast">${hours(b.temp,b.waves)}</div><section class="surf"><p class="section-label">SURF</p><div class="surf-grid"><div><strong>${b.waves}</strong><span>Altura de ola</span></div><div><strong>${b.period}</strong><span>Periodo</span></div><div><strong>${b.swell}</strong><span>Dirección</span></div></div><p>${b.surf}</p></section><div class="practical">${b.practical.map((item) => `<span>${item}</span>`).join("")}</div><p class="update">Datos de demostración · Actualizado hace 10 min</p></div></section>`;
+  app.innerHTML = `<section><button class="back" type="button" id="back">‹ Todas las playas</button><header class="hero"><p class="eyebrow">${b.town.toUpperCase()} · AHORA</p><h1>${b.name}</h1><div class="status ${b.condition === "caution" ? "caution" : ""}">${b.status}</div></header><div class="details"><a class="webcam-link" href="${cameraDirectory}" target="_blank" rel="noopener noreferrer">↗ Ver webcam en directo</a><p class="source-note">Se abre en la fuente original</p><p class="section-label">PREVISIÓN POR HORAS · HOY</p><div class="forecast">${hours(b.temp,b.waves)}</div><div class="quick-note" style="margin-top:20px"><span>✦</span><div><strong>Así está ahora</strong>${b.tip}</div></div><p class="section-label">CONDICIONES</p><div class="metrics">${metric(b.temp,"Temperatura")}${metric(b.wind,"Viento")}${metric(b.waves,"Oleaje")}${metric(b.uv,"Índice UV")}${metric(b.tide,"Próx. bajamar")}${metric(b.water,"Temperatura del agua")}</div><section class="surf"><p class="section-label">SURF</p><div class="surf-grid"><div><strong>${b.waves}</strong><span>Altura de ola</span></div><div><strong>${b.period}</strong><span>Periodo</span></div><div><strong>${b.swell}</strong><span>Dirección</span></div></div><p>${b.surf}</p></section><div class="practical">${b.practical.map((item) => `<span>${item}</span>`).join("")}</div><p class="update">Datos de demostración · Actualizado hace 10 min</p></div></section>`;
   const plan = beachPlans[b.id];
   const image = beachImages[b.id];
   if (image) {
