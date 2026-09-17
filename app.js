@@ -59,6 +59,57 @@ const beachCoordinates = {
   salinas: [43.578, -5.964], aguilar: [43.557, -6.109],
   penarronda: [43.553, -6.996]
 };
+const tideSources = {
+  "san-lorenzo": { slug: "gijon", label: "Gijón" },
+  rodiles: { slug: "gijon", label: "Gijón · referencia cercana" },
+  salinas: { slug: "castrillon", label: "Castrillón" },
+  aguilar: { slug: "castrillon", label: "Castrillón · referencia cercana" },
+  penarronda: { slug: "tapia-de-casariego", label: "Tapia de Casariego" }
+};
+const madridToday = () => {
+  const parts = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Madrid", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
+  const part = (type) => parts.find((item) => item.type === type)?.value;
+  return `${part("year")}-${part("month")}-${part("day")}`;
+};
+const tideSection = (id) => `<section class="tide-card" id="tides-${id}" aria-label="Mareas y temperatura del agua de hoy"><div class="tide-heading"><span aria-hidden="true">≈</span><div><p class="section-label">HOY EN LA PLAYA</p><h2>Mareas y agua</h2></div></div><div class="tide-events" id="tide-events-${id}" aria-live="polite">Cargando pleamares y bajamares…</div><div class="water-row"><span>Temperatura del agua<small>Superficie estimada</small></span><strong id="water-${id}" aria-live="polite">—</strong></div><p class="tide-source" id="tide-source-${id}">Predicción astronómica aproximada.</p><p class="tide-source">Agua: <a href="https://open-meteo.com/en/docs/marine-weather-api" target="_blank" rel="noopener noreferrer">Open-Meteo</a> / <a href="https://www.dwd.de/" target="_blank" rel="noopener noreferrer">DWD</a> · temperatura superficial estimada.</p></section>`;
+
+async function loadTides(beach) {
+  const events = document.querySelector(`#tide-events-${beach.id}`);
+  const note = document.querySelector(`#tide-source-${beach.id}`);
+  const source = tideSources[beach.id];
+  try {
+    const response = await fetch(`https://demareas.com/api/${source.slug}.json`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    const day = data.dias?.find((entry) => entry.fecha === madridToday());
+    const tides = day?.mareas?.filter((tide) => ["pleamar", "bajamar"].includes(tide.tipo) && /^\d{2}:\d{2}$/.test(tide.hora));
+    if (!tides?.length) throw new Error("No hay mareas para hoy");
+    if (!events?.isConnected) return;
+    const now = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Madrid", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date());
+    const next = tides.findIndex((tide) => tide.hora >= now);
+    events.innerHTML = tides.map((tide, i) => `<div class="tide-event ${i === next ? "next" : ""}"><span class="tide-arrow" aria-hidden="true">${tide.tipo === "pleamar" ? "↑" : "↓"}</span><span>${tide.tipo === "pleamar" ? "Pleamar" : "Bajamar"}</span><strong>${tide.hora}</strong>${i === next ? "<small>Próxima</small>" : ""}</div>`).join("");
+    note.innerHTML = `Mareas: <a href="https://demareas.com/${source.slug}/" target="_blank" rel="noopener noreferrer">demareas.com</a> · CC BY 4.0 · ${source.label}. Las horas pueden variar en la playa.`;
+  } catch {
+    if (events?.isConnected) events.textContent = "No se han podido cargar las mareas de hoy.";
+    if (note?.isConnected) note.innerHTML = `Consulta las mareas en <a href="https://demareas.com/${source.slug}/" target="_blank" rel="noopener noreferrer">demareas.com</a>.`;
+  }
+}
+
+async function loadWaterTemperature(beach) {
+  const value = document.querySelector(`#water-${beach.id}`);
+  const [latitude, longitude] = beachCoordinates[beach.id];
+  const url = new URL("https://marine-api.open-meteo.com/v1/marine");
+  url.search = new URLSearchParams({ latitude, longitude, current: "sea_surface_temperature", timezone: "Europe/Madrid", cell_selection: "sea" });
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const temperature = (await response.json()).current?.sea_surface_temperature;
+    if (typeof temperature !== "number" || !Number.isFinite(temperature)) throw new Error("Temperatura no disponible");
+    if (value?.isConnected) value.innerHTML = `${temperature.toFixed(1).replace(".", ",")}° <small>C</small>`;
+  } catch {
+    if (value?.isConnected) value.textContent = "Sin datos";
+  }
+}
 const metric = (value, label) => `<div class="metric"><strong>${value}</strong><span>${label}</span></div>`;
 const hours = (temp, waves) => {
   const temperature = Number.parseInt(temp, 10);
@@ -122,7 +173,13 @@ function renderList() {
 function renderBeach(b) {
   app.innerHTML = `<section><button class="back" type="button" id="back">‹ Todas las playas</button><header class="hero"><p class="eyebrow">${b.town.toUpperCase()} · AHORA</p><h1>${b.name}</h1><div class="status ${b.condition === "caution" ? "caution" : ""}">${b.status}</div></header><div class="details"><a class="webcam-link" href="${cameraDirectory}" target="_blank" rel="noopener noreferrer">↗ Ver webcam en directo</a><p class="source-note">Se abre en la fuente original</p><p class="section-label">PREVISIÓN POR HORAS · HOY</p><div class="forecast">${hours(b.temp,b.waves)}</div><div class="quick-note" style="margin-top:20px"><span>✦</span><div><strong>Así está ahora</strong>${b.tip}</div></div><p class="section-label">CONDICIONES</p><div class="metrics">${metric(b.temp,"Temperatura")}${metric(b.wind,"Viento")}${metric(b.waves,"Oleaje")}${metric(b.uv,"Índice UV")}${metric(b.tide,"Próx. bajamar")}${metric(b.water,"Temperatura del agua")}</div><section class="surf"><p class="section-label">SURF</p><div class="surf-grid"><div><strong>${b.waves}</strong><span>Altura de ola</span></div><div><strong>${b.period}</strong><span>Periodo</span></div><div><strong>${b.swell}</strong><span>Dirección</span></div></div><p>${b.surf}</p></section><div class="practical">${b.practical.map((item) => `<span>${item}</span>`).join("")}</div><p class="update">Tiempo, mar y surf: datos de demostración · Puesta de sol: previsión real</p></div></section>`;
   const plan = beachPlans[b.id];
-  document.querySelector(".metrics").insertAdjacentHTML("afterend", `<section class="sunset-card" id="sunset-${b.id}" aria-live="polite"><div class="sunset-head"><span class="sunset-icon" aria-hidden="true">◒</span><div><small>PUESTA DE SOL · HOY</small><strong>Cargando…</strong></div></div></section>`);
+  const metrics = document.querySelector(".metrics");
+  metrics.previousElementSibling.remove();
+  metrics.insertAdjacentHTML("afterend", `${tideSection(b.id)}<section class="sunset-card" id="sunset-${b.id}" aria-live="polite"><div class="sunset-head"><span class="sunset-icon" aria-hidden="true">◒</span><div><small>PUESTA DE SOL · HOY</small><strong>Cargando…</strong></div></div></section>`);
+  metrics.remove();
+  document.querySelector(".update").textContent = "Tiempo y surf: datos de demostración · Mareas, agua y puesta de sol: predicciones";
+  loadTides(b);
+  loadWaterTemperature(b);
   loadSunset(b);
   const image = beachImages[b.id];
   if (image) {
