@@ -1,4 +1,14 @@
-const cameraDirectory = "https://www.webcamsdeasturias.com/las-playas-de-asturias/7/";
+const beachWebcams = {
+  "san-lorenzo": { player: "https://rtsp.me/embed/akBSN4td/", source: "https://www.webcamsdeasturias.com/webcam.php?id=148" },
+  rodiles: { player: "https://rtsp.me/embed/Kh6Z3n4i/", source: "https://www.webcamsdeasturias.com/asturias/comarca-de-la-sidra/villaviciosa/rodiles/playa-de-rodiles-hd/120/" },
+  salinas: { player: "https://rtsp.me/embed/Z8nGKR9k/", source: "https://www.webcamsdeasturias.com/asturias/comarca-de-aviles/castrillon/salinas/playa-de-salinas-hd/26/" },
+  aguilar: { player: "https://rtsp.me/embed/DsrHF74h/", source: "https://www.webcamsdeasturias.com/asturias/bajo-nalon/muros-de-nalon/aguilar/playas-de-campofrio-aguilar-hd/122/" },
+  penarronda: { player: "https://rtsp.me/embed/BrKdaEZT/", source: "https://www.webcamsdeasturias.com/asturias/oscos-eo/castropol/penarronda/playa-de-penarronda-hd/27/" }
+};
+const liveCamera = (beach) => {
+  const webcam = beachWebcams[beach.id];
+  return `<div class="hero-live"><div class="hero-live-frame"><iframe src="${webcam.player}" title="Webcam en directo de ${beach.name}" loading="eager" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div><div class="hero-live-foot"><span><i aria-hidden="true"></i> Webcam en directo</span><a href="${webcam.source}" target="_blank" rel="noopener noreferrer">Abrir en origen ↗</a></div></div>`;
+};
 
 const beaches = [
   { id:"san-lorenzo", name:"San Lorenzo", town:"Gijón", temp:"22°", water:"19°", wind:"↗ 12 km/h", waves:"0,6 m", period:"9 s", swell:"NO", uv:"UV 5", tide:"15:42", status:"Buen día para playa", condition:"good", tip:"Mar tranquilo y temperatura agradable. Buen momento para paseo, baño o terraza.", surf:"Suave y ordenado. Mejor para iniciación que para olas grandes.", practical:["Paseo marítimo","Acceso urbano","Servicios cercanos"] },
@@ -256,7 +266,7 @@ function renderList() {
 }
 
 function renderBeach(b) {
-  app.innerHTML = `<section><button class="back" type="button" id="back">‹ Todas las playas</button><header class="hero"><p class="eyebrow">${b.town.toUpperCase()} · AHORA</p><h1>${b.name}</h1><div class="status ${b.condition === "caution" ? "caution" : ""}">${b.status}</div></header><div class="details"><a class="webcam-link" href="${cameraDirectory}" target="_blank" rel="noopener noreferrer">↗ Ver webcam en directo</a><p class="source-note">Se abre en la fuente original</p><p class="section-label">PREVISIÓN POR HORAS · HOY</p><div class="forecast">${hours(b.temp,b.waves)}</div><div class="quick-note" style="margin-top:20px"><span>✦</span><div><strong>Así está ahora</strong>${b.tip}</div></div><p class="section-label">CONDICIONES</p><div class="metrics">${metric(b.temp,"Temperatura")}${metric(b.wind,"Viento")}${metric(b.waves,"Oleaje")}${metric(b.uv,"Índice UV")}${metric(b.tide,"Próx. bajamar")}${metric(b.water,"Temperatura del agua")}</div><section class="surf"><p class="section-label">SURF</p><div class="surf-grid"><div><strong>${b.waves}</strong><span>Altura de ola</span></div><div><strong>${b.period}</strong><span>Periodo</span></div><div><strong>${b.swell}</strong><span>Dirección</span></div></div><p>${b.surf}</p></section><div class="practical">${b.practical.map((item) => `<span>${item}</span>`).join("")}</div><p class="update">Tiempo, mar y surf: datos de demostración · Puesta de sol: previsión real</p></div></section>`;
+  app.innerHTML = `<section><button class="back" type="button" id="back">‹ Todas las playas</button><header class="hero"><p class="eyebrow">${b.town.toUpperCase()} · AHORA</p><h1>${b.name}</h1><div class="status ${b.condition === "caution" ? "caution" : ""}">${b.status}</div>${liveCamera(b)}</header><div class="details"><p class="section-label">PREVISIÓN POR HORAS · HOY</p><div class="forecast">${hours(b.temp,b.waves)}</div><div class="quick-note" style="margin-top:20px"><span>✦</span><div><strong>Así está ahora</strong>${b.tip}</div></div><p class="section-label">CONDICIONES</p><div class="metrics">${metric(b.temp,"Temperatura")}${metric(b.wind,"Viento")}${metric(b.waves,"Oleaje")}${metric(b.uv,"Índice UV")}${metric(b.tide,"Próx. bajamar")}${metric(b.water,"Temperatura del agua")}</div><section class="surf"><p class="section-label">SURF</p><div class="surf-grid"><div><strong>${b.waves}</strong><span>Altura de ola</span></div><div><strong>${b.period}</strong><span>Periodo</span></div><div><strong>${b.swell}</strong><span>Dirección</span></div></div><p>${b.surf}</p></section><div class="practical">${b.practical.map((item) => `<span>${item}</span>`).join("")}</div><p class="update">Tiempo, mar y surf: datos de demostración · Puesta de sol: previsión real</p></div></section>`;
   document.querySelector(".forecast").insertAdjacentHTML("afterend", dailySection(b.id));
   const plan = beachPlans[b.id];
   const metrics = document.querySelector(".metrics");
