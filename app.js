@@ -71,6 +71,50 @@ const madridToday = () => {
   const part = (type) => parts.find((item) => item.type === type)?.value;
   return `${part("year")}-${part("month")}-${part("day")}`;
 };
+const dailySection = (id) => `<section class="daily-card" id="daily-${id}" aria-label="Previsión del tiempo para cinco días"><div class="daily-heading"><span aria-hidden="true">▦</span><h2>Previsión por días</h2></div><div class="daily-list" id="daily-list-${id}" aria-live="polite">Cargando los próximos cinco días…</div><p class="daily-source">Previsión: <a href="https://open-meteo.com/en/docs" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · Hoy y los cuatro días siguientes.</p></section>`;
+const dailyWeather = (code) => {
+  if (code === 0) return { icon: "☀", label: "Despejado" };
+  if ([1, 2].includes(code)) return { icon: "⛅", label: "Parcialmente nuboso" };
+  if (code === 3) return { icon: "☁", label: "Nublado" };
+  if ([45, 48].includes(code)) return { icon: "≋", label: "Niebla" };
+  if (code >= 51 && code <= 57) return { icon: "☂", label: "Llovizna" };
+  if (code >= 61 && code <= 67) return { icon: "☂", label: "Lluvia" };
+  if (code >= 71 && code <= 77) return { icon: "❄", label: "Nieve" };
+  if (code >= 80 && code <= 82) return { icon: "☂", label: "Chubascos" };
+  if (code >= 85 && code <= 86) return { icon: "❄", label: "Chubascos de nieve" };
+  if (code >= 95) return { icon: "⚡", label: "Tormenta" };
+  return { icon: "☁", label: "Tiempo variable" };
+};
+async function loadDaily(beach) {
+  const list = document.querySelector(`#daily-list-${beach.id}`);
+  if (!list) return;
+  try {
+    const [latitude, longitude] = beachCoordinates[beach.id];
+    const url = new URL("https://api.open-meteo.com/v1/forecast");
+    url.search = new URLSearchParams({ latitude, longitude, daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max", timezone: "Europe/Madrid", forecast_days: "5" });
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const daily = (await response.json()).daily;
+    if (!Array.isArray(daily?.time) || daily.time.length < 5 || !["weather_code", "temperature_2m_max", "temperature_2m_min", "precipitation_probability_max"].every((field) => Array.isArray(daily[field]) && daily[field].length >= 5)) throw new Error("Previsión incompleta");
+    const rows = daily.time.slice(0, 5).map((date, i) => ({ date, code: daily.weather_code[i], low: daily.temperature_2m_min[i], high: daily.temperature_2m_max[i], rain: daily.precipitation_probability_max[i] }));
+    if (rows.some((row) => !Number.isFinite(row.low) || !Number.isFinite(row.high))) throw new Error("Temperaturas incompletas");
+    if (!list.isConnected) return;
+    const floor = Math.floor(Math.min(...rows.map((row) => row.low)));
+    const ceiling = Math.ceil(Math.max(...rows.map((row) => row.high)));
+    const range = Math.max(1, ceiling - floor);
+    const weekday = new Intl.DateTimeFormat("es-ES", { weekday: "long", timeZone: "UTC" });
+    list.innerHTML = rows.map((row, i) => {
+      const weather = dailyWeather(row.code);
+      const name = i === 0 ? "Hoy" : weekday.format(new Date(`${row.date}T12:00:00Z`));
+      const start = Math.max(0, (row.low - floor) / range * 100);
+      const width = Math.max(3, (row.high - row.low) / range * 100);
+      const rain = Number.isFinite(row.rain) ? `${Math.round(row.rain)}%` : "—";
+      return `<div class="daily-row" aria-label="${name}: ${weather.label}; mínima ${Math.round(row.low)} grados, máxima ${Math.round(row.high)} grados; probabilidad máxima de lluvia ${rain}"><strong class="daily-day">${name}</strong><span class="daily-sky"><span class="daily-icon" aria-hidden="true">${weather.icon}</span><small>${rain}</small></span><span class="daily-low">${Math.round(row.low)}°</span><span class="daily-track" aria-hidden="true"><span class="daily-range" style="left:${start.toFixed(1)}%;width:${width.toFixed(1)}%"></span></span><span class="daily-high">${Math.round(row.high)}°</span></div>`;
+    }).join("");
+  } catch {
+    if (list.isConnected) list.textContent = "No se ha podido cargar la previsión de los próximos días.";
+  }
+}
 const tideSection = (id) => `<section class="tide-card" id="tides-${id}" aria-label="Mareas y temperatura del agua de hoy"><div class="tide-heading"><span aria-hidden="true">≈</span><div><p class="section-label">HOY EN LA PLAYA</p><h2>Mareas y agua</h2></div></div><div class="tide-events" id="tide-events-${id}" aria-live="polite">Cargando pleamares y bajamares…</div><div class="water-row"><span>Temperatura del agua<small>Superficie estimada</small></span><strong id="water-${id}" aria-live="polite">—</strong></div><p class="tide-source" id="tide-source-${id}">Predicción astronómica aproximada.</p><p class="tide-source">Agua: <a href="https://open-meteo.com/en/docs/marine-weather-api" target="_blank" rel="noopener noreferrer">Open-Meteo</a> / <a href="https://www.dwd.de/" target="_blank" rel="noopener noreferrer">DWD</a> · temperatura superficial estimada.</p></section>`;
 
 async function loadTides(beach) {
@@ -222,6 +266,7 @@ function renderList() {
 
 function renderBeach(b) {
   app.innerHTML = `<section><button class="back" type="button" id="back">‹ Todas las playas</button><header class="hero"><p class="eyebrow">${b.town.toUpperCase()} · AHORA</p><h1>${b.name}</h1><div class="status ${b.condition === "caution" ? "caution" : ""}">${b.status}</div></header><div class="details"><a class="webcam-link" href="${cameraDirectory}" target="_blank" rel="noopener noreferrer">↗ Ver webcam en directo</a><p class="source-note">Se abre en la fuente original</p><p class="section-label">PREVISIÓN POR HORAS · HOY</p><div class="forecast">${hours(b.temp,b.waves)}</div><div class="quick-note" style="margin-top:20px"><span>✦</span><div><strong>Así está ahora</strong>${b.tip}</div></div><p class="section-label">CONDICIONES</p><div class="metrics">${metric(b.temp,"Temperatura")}${metric(b.wind,"Viento")}${metric(b.waves,"Oleaje")}${metric(b.uv,"Índice UV")}${metric(b.tide,"Próx. bajamar")}${metric(b.water,"Temperatura del agua")}</div><section class="surf"><p class="section-label">SURF</p><div class="surf-grid"><div><strong>${b.waves}</strong><span>Altura de ola</span></div><div><strong>${b.period}</strong><span>Periodo</span></div><div><strong>${b.swell}</strong><span>Dirección</span></div></div><p>${b.surf}</p></section><div class="practical">${b.practical.map((item) => `<span>${item}</span>`).join("")}</div><p class="update">Tiempo, mar y surf: datos de demostración · Puesta de sol: previsión real</p></div></section>`;
+  document.querySelector(".forecast").insertAdjacentHTML("afterend", dailySection(b.id));
   const plan = beachPlans[b.id];
   const metrics = document.querySelector(".metrics");
   metrics.previousElementSibling.remove();
@@ -232,6 +277,7 @@ function renderBeach(b) {
   oldSurf.remove();
   document.querySelector(".update").textContent = "Tiempo por horas: datos de demostración · Mareas, agua, puesta de sol y surf: previsiones";
   loadTides(b);
+  loadDaily(b);
   loadWaterTemperature(b);
   loadSurf(b);
   loadSunset(b);
