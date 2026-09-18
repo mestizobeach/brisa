@@ -1,75 +1,86 @@
-const businesses = [
-  {id:'puebloastur',name:'Puebloastur Eco Resort',category:'Espacios',zone:'Oriente',place:'Parres · Oriente',symbol:'⌂',summary:'Un resort entre montañas para celebrar una boda con alojamiento y espacios interiores y exteriores.',detail:'Puebloastur presenta espacios para ceremonia, banquete y celebración en un entorno rural junto a la Sierra del Sueve. Consulta las opciones de exclusividad y alojamiento directamente con el equipo.',url:'https://www.puebloastur.com/bodas'},
-  {id:'villa-maria',name:'Finca Villa María',category:'Espacios',zone:'Gijón',place:'Gijón',symbol:'✦',summary:'Finca y restaurante para bodas con espacios de celebración en Gijón.',detail:'Finca Villa María presenta propuestas de bodas y eventos en su finca de Gijón. Su web permite conocer el lugar y contactar para una visita.',url:'https://fincavillamariagijon.es/bodas/'},
-  {id:'quinta-ynfanzon',name:'La Quinta del Ynfanzón',category:'Espacios',zone:'Gijón',place:'Gijón',symbol:'⌂',summary:'Finca centenaria con salón para bodas, gastronomía y alojamiento rural.',detail:'La Quinta del Ynfanzón reúne finca, salón polivalente y hotel rural a pocos minutos de Gijón. Consulta en su web el formato que mejor se adapta a tu boda.',url:'https://quintadelynfanzon.com/'},
-  {id:'deloya-latores',name:'Deloya Latores',category:'Espacios',zone:'Oviedo',place:'Oviedo',symbol:'✧',summary:'Finca singular en Oviedo con espacios interiores y exteriores para celebraciones.',detail:'Deloya Latores es un espacio de celebraciones en Oviedo. Su equipo comparte las posibilidades de la finca y sus servicios para bodas.',url:'https://www.deloyalatores.com/'},
-  {id:'palacio-cutre',name:'Palacio de Cutre',category:'Espacios',zone:'Oriente',place:'Piloña · Oriente',symbol:'♜',summary:'Palacio y finca con vistas a los Picos de Europa para bodas y eventos.',detail:'El Palacio de Cutre presenta un espacio para bodas dentro de su finca en el oriente asturiano. Consulta directamente formatos, capacidad y alojamiento.',url:'https://palaciodecutre.com/eventos/'},
-  {id:'capile',name:'Capilé',category:'Catering',zone:'Oviedo',place:'Oviedo · servicio en Asturias',symbol:'◒',summary:'Catering asturiano para bodas y celebraciones con propuestas gastronómicas propias.',detail:'Capilé ofrece catering para bodas y otros eventos desde Oviedo. Puedes consultar menús y servicios actuales en su web.',url:'https://www.capile.com/'},
-  {id:'perfday',name:'Perfday Wedding',category:'Wedding planner',zone:'Asturias',place:'Asturias',symbol:'✳',summary:'Diseño, organización y acompañamiento integral para bodas en Asturias.',detail:'Perfday trabaja en la planificación y diseño de bodas en Asturias, desde las primeras decisiones hasta la coordinación del día.',url:'https://www.perfday.es/'},
-  {id:'mynoah',name:'My Noah Candy',category:'Wedding planner',zone:'Asturias',place:'Asturias',symbol:'✿',summary:'Planificación de bodas con atención al diseño, flores y coordinación de proveedores.',detail:'My Noah Candy presenta servicios de organización y diseño de bodas en Asturias. Su web explica su enfoque y vías de contacto.',url:'https://www.mynoahcandy.com/'},
-  {id:'boda-flores',name:'Boda y Flores',category:'Decoración',zone:'Asturias',place:'Asturias',symbol:'❀',summary:'Decoración personalizada para bodas y otros eventos en Asturias.',detail:'Boda y Flores muestra propuestas decorativas con flores y globos. Consulta ideas y presupuestos en su web.',url:'https://bodayflores.com/'},
-  {id:'petit-grinza',name:'Petit Grinza',category:'Decoración',zone:'Asturias',place:'Asturias',symbol:'❁',summary:'Diseño y decoración de bodas con selección de materiales y flores.',detail:'Petit Grinza ofrece diseño y decoración de bodas en Asturias. Su propuesta incluye dirección estética y colaboración con otros especialistas.',url:'https://www.petitgrinza.com/dise%C3%B1o'},
-  {id:'videodance',name:'Videodance',category:'DJ y música',zone:'Asturias',place:'Asturias',symbol:'♫',summary:'DJ para bodas con montajes de música, sonido e iluminación.',detail:'Videodance presenta un servicio de DJ para bodas en Asturias con personalización de música, iluminación y puesta en escena.',url:'https://videodance.es/dj/'},
-  {id:'pronorte',name:'Pronorte',category:'Sonido e iluminación',zone:'Asturias',place:'Asturias',symbol:'◈',summary:'Servicios técnicos y alquiler de sonido e iluminación para eventos.',detail:'Pronorte es una empresa asturiana de servicios técnicos para eventos. Consulta con su equipo las necesidades de sonido e iluminación de tu boda.',url:'https://www.pronortesonido.es/'}
-];
+const CATEGORIES=['Todos','Espacios','Catering','Wedding planner','Decoración','DJ y música','Sonido e iluminación'];
+const STEPS=['Definir fecha aproximada','Decidir presupuesto','Elegir espacio','Seleccionar catering','Reservar música y proveedores','Enviar invitaciones'];
+const $=id=>document.getElementById(id);
+const readArray=key=>{try{const value=JSON.parse(localStorage.getItem(key));return Array.isArray(value)?value:[]}catch{return[]}};
+const writeArray=(key,value)=>{try{localStorage.setItem(key,JSON.stringify(value))}catch{}};
+const saved=new Set(readArray('albor-favorites'));
+const done=new Set(readArray('albor-steps'));
+const filters={category:'Todos',zone:'all',query:''};
+const accent={'Espacios':'espacios','Catering':'catering','Wedding planner':'planner','Decoración':'decoracion','DJ y música':'musica','Sonido e iluminación':'sonido'};
+let installPrompt=null;
+const fold=text=>text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+const route=()=>location.hash.replace(/^#\/?/,'').split('/').filter(Boolean);
+const quote=text=>String(text).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 
-const categories = ['Todos','Espacios','Catering','Wedding planner','Decoración','DJ y música','Sonido e iluminación'];
-const steps = ['Definir fecha aproximada','Decidir presupuesto','Elegir espacio','Seleccionar catering','Reservar música y proveedores','Enviar invitaciones'];
-const state = {category:'Todos',search:'',zone:'all',favoritesOnly:false};
-const $ = (id) => document.getElementById(id);
-const safeRead = (key) => { try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; } };
-const safeWrite = (key,value) => { try { localStorage.setItem(key,JSON.stringify(value)); } catch {} };
-const favorites = new Set(safeRead('albor-favorites'));
-const completed = new Set(safeRead('albor-steps'));
-const categoryClass = {'Espacios':'venue','Catering':'catering','Wedding planner':'planner','Decoración':'decor','DJ y música':'music','Sonido e iluminación':'light'};
-const normalize = (value) => value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+function card(b){
+  return `<article class="listing"><div class="listing-art ${accent[b.category]}"><span class="art-symbol" aria-hidden="true">${b.symbol}</span><button class="save-button ${saved.has(b.id)?'saved':''}" type="button" data-save="${b.id}" aria-label="${saved.has(b.id)?'Quitar de':'Añadir a'} guardados: ${quote(b.name)}" aria-pressed="${saved.has(b.id)}">${saved.has(b.id)?'♥':'♡'}</button></div><div class="listing-body"><div class="listing-meta">${quote(b.category)} · ${quote(b.place)}</div><h3>${quote(b.name)}</h3><p>${quote(b.summary)}</p><a class="listing-open" href="#/ficha/${b.id}">Ver ficha →</a></div></article>`;
+}
+function featureBanner(){return `<div class="info-banner"><div><strong>Tu boda, a tu manera.</strong><p>Guarda lo que te gusta y sigue tus próximos pasos.</p></div><a class="secondary" href="#/plan">Abrir mi plan →</a></div>`}
+function installCard(){return `<div class="install-card"><strong>Lleva ALBOR contigo</strong><p id="install-help">Añade esta app a la pantalla de inicio de tu móvil para abrirla como Brisa.</p><button class="secondary" id="install-button" type="button">Cómo instalarla ↗</button></div>`}
 
-function renderCategories(){
-  $('category-list').innerHTML = categories.map(category => `<button class="chip${state.category===category?' active':''}" type="button" data-category="${category}" aria-pressed="${state.category===category}">${category}</button>`).join('');
-}
-function matches(business){
-  const query=normalize(state.search.trim());
-  return (state.category==='Todos'||business.category===state.category)
-    && (state.zone==='all'||business.zone===state.zone)
-    && (!state.favoritesOnly||favorites.has(business.id))
-    && (!query||normalize(`${business.name} ${business.category} ${business.place} ${business.summary}`).includes(query));
-}
-function renderCards(){
-  const found=businesses.filter(matches);
-  $('cards').innerHTML=found.map(b=>`<article class="card"><div class="card-visual ${categoryClass[b.category]}"><span class="card-category">${b.category}</span><span class="visual-symbol" aria-hidden="true">${b.symbol}</span><button class="favorite${favorites.has(b.id)?' saved':''}" data-favorite="${b.id}" type="button" aria-label="${favorites.has(b.id)?'Quitar de':'Guardar en'} favoritos: ${b.name}" aria-pressed="${favorites.has(b.id)}">${favorites.has(b.id)?'♥':'♡'}</button></div><div class="card-body"><span class="card-zone">↗ ${b.place}</span><h3>${b.name}</h3><p>${b.summary}</p><div class="card-actions"><button type="button" data-detail="${b.id}">Ver ficha <span aria-hidden="true">→</span></button><a href="${b.url}" target="_blank" rel="noopener noreferrer">Web oficial ↗</a></div></div></article>`).join('');
-  $('result-count').textContent=`${found.length} ${found.length===1?'opción encontrada':'opciones encontradas'}`;
-  $('saved-count').textContent=favorites.size;
-  $('empty').hidden=found.length!==0;
-}
-function renderChecklist(){
-  $('checklist').innerHTML=steps.map((step,index)=>`<label class="task${completed.has(index)?' checked':''}"><input type="checkbox" data-step="${index}" ${completed.has(index)?'checked':''}><span>${String(index+1).padStart(2,'0')}. ${step}</span></label>`).join('');
-  $('progress-bar').style.width=`${completed.size/steps.length*100}%`;
-  $('progress-label').textContent=`${completed.size} de ${steps.length} pasos completados`;
-}
-function resetFilters(){
-  Object.assign(state,{category:'Todos',search:'',zone:'all',favoritesOnly:false});
-  $('search').value='';$('zone').value='all';$('favorites-only').checked=false;
-  renderCategories();renderCards();
-}
-function showDetail(id){
-  const b=businesses.find(item=>item.id===id);if(!b)return;
-  $('detail-content').innerHTML=`<div class="detail-visual" aria-hidden="true">${b.symbol}</div><div class="detail-inner"><p class="eyebrow">${b.category} · ${b.place}</p><h2 id="detail-title">${b.name}</h2><p>${b.detail}</p><div class="detail-meta"><span><strong>Zona</strong>${b.place}</span><span><strong>Disponibilidad y precio</strong>Consultar con el proveedor</span></div><div class="detail-actions"><a class="button button-dark" href="${b.url}" target="_blank" rel="noopener noreferrer">Visitar web oficial ↗</a><button type="button" data-favorite="${b.id}">${favorites.has(b.id)?'♥ Guardado':'♡ Guardar favorito'}</button></div><p class="detail-footnote">La información puede cambiar. Confirma los detalles en la web oficial antes de contratar.</p></div>`;
-  $('detail-dialog').showModal();
+function home(){
+  const featured=[businesses[0],businesses[1],businesses[6],businesses[10]];
+  $('app').innerHTML=`<section class="home-hero"><div class="hero-arch" aria-hidden="true"></div><div class="home-hero-content"><p class="eyebrow">BODAS EN ASTURIAS</p><h1>Todo empieza con un <em>sí.</em></h1><p>Encuentra el lugar, las personas y las ideas para hacer tu boda a tu manera.</p><a class="primary" href="#/explorar">Explorar opciones ↗</a></div></section><section><div class="section-title"><h2>¿Por dónde empezamos?</h2></div><div class="quick-grid"><a class="quick-card" href="#/explorar/Espacios"><span class="quick-icon">⌂</span><span><strong>Espacios</strong><small>El lugar</small></span></a><a class="quick-card" href="#/explorar/Catering"><span class="quick-icon">◒</span><span><strong>Catering</strong><small>La mesa</small></span></a><a class="quick-card" href="#/explorar/Wedding%20planner"><span class="quick-icon">✳</span><span><strong>Organización</strong><small>La ayuda</small></span></a><a class="quick-card" href="#/explorar/Decoraci%C3%B3n"><span class="quick-icon">✿</span><span><strong>Decoración</strong><small>El ambiente</small></span></a><a class="quick-card" href="#/explorar/DJ%20y%20m%C3%BAsica"><span class="quick-icon">♫</span><span><strong>DJ y música</strong><small>La fiesta</small></span></a><a class="quick-card" href="#/explorar/Sonido%20e%20iluminaci%C3%B3n"><span class="quick-icon">◈</span><span><strong>Luz y sonido</strong><small>El montaje</small></span></a></div></section><section><div class="section-title"><h2>Para empezar a soñar</h2><a href="#/explorar">Ver todas →</a></div><div class="feature-list">${featured.map(card).join('')}</div></section>${featureBanner()}${installCard()}<p class="about-note">ALBOR es una selección inicial e independiente. Las fichas enlazan a las webs oficiales; confirma precio y disponibilidad directamente con cada negocio.</p>`;
+  wireInstall();
 }
 
-$('category-list').addEventListener('click',event=>{const button=event.target.closest('[data-category]');if(!button)return;state.category=button.dataset.category;renderCategories();renderCards();});
-$('search').addEventListener('input',event=>{state.search=event.target.value;renderCards();});
-$('zone').addEventListener('change',event=>{state.zone=event.target.value;renderCards();});
-$('favorites-only').addEventListener('change',event=>{state.favoritesOnly=event.target.checked;renderCards();});
-$('reset-filters').addEventListener('click',resetFilters);
-$('empty-reset').addEventListener('click',resetFilters);
-$('saved-nav').addEventListener('click',()=>{state.favoritesOnly=true;$('favorites-only').checked=true;renderCards();$('catalogo').scrollIntoView({behavior:'smooth'});});
-$('cards').addEventListener('click',event=>{const favorite=event.target.closest('[data-favorite]');if(favorite){toggleFavorite(favorite.dataset.favorite);return;}const detail=event.target.closest('[data-detail]');if(detail)showDetail(detail.dataset.detail);});
-$('detail-content').addEventListener('click',event=>{const favorite=event.target.closest('[data-favorite]');if(favorite){toggleFavorite(favorite.dataset.favorite);showDetailContent(favorite.dataset.favorite);}});
-function showDetailContent(id){const dialog=$('detail-dialog');dialog.close();showDetail(id);}
-function toggleFavorite(id){if(favorites.has(id))favorites.delete(id);else favorites.add(id);safeWrite('albor-favorites',[...favorites]);renderCards();}
-$('dialog-close').addEventListener('click',()=>$('detail-dialog').close());
-$('detail-dialog').addEventListener('click',event=>{if(event.target===$('detail-dialog'))$('detail-dialog').close();});
-$('checklist').addEventListener('change',event=>{const input=event.target.closest('[data-step]');if(!input)return;const index=Number(input.dataset.step);if(input.checked)completed.add(index);else completed.delete(index);safeWrite('albor-steps',[...completed]);renderChecklist();});
-$('total-count').textContent=businesses.length;
-renderCategories();renderCards();renderChecklist();
+function filtered(){
+  const query=fold(filters.query.trim());
+  return businesses.filter(b=>(filters.category==='Todos'||b.category===filters.category)&&(filters.zone==='all'||b.zone===filters.zone)&&(!query||fold(`${b.name} ${b.summary} ${b.place} ${b.category}`).includes(query)));
+}
+function renderResults(){
+  const target=$('explore-results');if(!target)return;
+  const found=filtered();
+  $('result-count').textContent=`${found.length} ${found.length===1?'opción':'opciones'}`;
+  target.innerHTML=found.length?`<div class="results">${found.map(card).join('')}</div>`:`<div class="empty"><div class="symbol">✳</div><h2>No encontramos resultados</h2><p>Prueba otra categoría, zona o palabra.</p><button class="secondary" type="button" id="clear-filters">Limpiar filtros</button></div>`;
+}
+function renderChips(){const target=$('category-chips');if(target)target.innerHTML=CATEGORIES.map(c=>`<button type="button" class="chip ${filters.category===c?'active':''}" data-category="${quote(c)}" aria-pressed="${filters.category===c}">${quote(c)}</button>`).join('')}
+function explore(routeCategory){
+  if(routeCategory&&CATEGORIES.includes(routeCategory))filters.category=routeCategory;
+  else if(routeCategory===null)filters.category='Todos';
+  $('app').innerHTML=`<section class="screen-head"><p class="eyebrow">DESCUBRE ASTURIAS</p><h1>Encuentra a los <em>tuyos.</em></h1><p>Espacios y profesionales para que cada detalle tenga tu sello.</p></section><div class="search-box"><input id="search-input" type="search" placeholder="Buscar nombre, servicio o zona" aria-label="Buscar" value="${quote(filters.query)}"></div><div class="chips" id="category-chips" role="group" aria-label="Categorías"></div><div class="filter-row"><select id="zone-select" aria-label="Filtrar por zona"><option value="all">Toda Asturias</option><option value="Gijón">Gijón</option><option value="Oviedo">Oviedo</option><option value="Oriente">Oriente</option><option value="Asturias">Varias zonas</option></select><span id="result-count" aria-live="polite"></span></div><section id="explore-results" aria-label="Resultados"></section><p class="about-note">Selección inicial con enlaces a las webs oficiales. No se muestran precios ni disponibilidad sin confirmar.</p>`;
+  $('zone-select').value=filters.zone;renderChips();renderResults();
+}
+function guardados(){
+  const items=businesses.filter(b=>saved.has(b.id));
+  $('app').innerHTML=`<section class="screen-head"><p class="eyebrow">TU SELECCIÓN</p><h1>Ideas que quieres <em>guardar.</em></h1><p>Tus favoritos se guardan en este dispositivo.</p></section>${items.length?`<div class="results">${items.map(card).join('')}</div>`:`<div class="empty"><div class="symbol">♡</div><h2>Tu lista está esperando</h2><p>Toca el corazón de cualquier espacio o proveedor para guardarlo aquí.</p><a class="primary" href="#/explorar">Explorar opciones ↗</a></div>`}${featureBanner()}`;
+}
+function plan(){
+  const progress=Math.round(done.size/STEPS.length*100);
+  $('app').innerHTML=`<section class="screen-head"><p class="eyebrow">TU BODA, PASO A PASO</p><h1>Mi <em>plan.</em></h1><p>Una guía sencilla para empezar a organizarlo todo.</p></section><div class="plan-card"><p class="eyebrow">TU PROGRESO</p><h2>Vas por buen camino.</h2><p>Ve marcando los pasos que ya has resuelto.</p><div class="progress"><span style="width:${progress}%"></span></div><p class="progress-caption">${done.size} de ${STEPS.length} pasos completados</p></div><div class="checklist">${STEPS.map((step,index)=>`<label class="task ${done.has(index)?'done':''}"><input type="checkbox" data-step="${index}" ${done.has(index)?'checked':''}><span>${String(index+1).padStart(2,'0')}. ${step}</span></label>`).join('')}</div><p class="plan-hint">El progreso queda guardado en este dispositivo. Puedes cambiar cualquier paso cuando quieras.</p>${installCard()}`;
+  wireInstall();
+}
+function ficha(id){
+  const b=businesses.find(item=>item.id===id);if(!b){location.hash='#/explorar';return}
+  const current=b.category==='Espacios'?'Espacios':'proveedores';
+  $('app').innerHTML=`<div class="detail-view"><a class="back-link" href="#/explorar/${encodeURIComponent(b.category)}">← Volver a ${current}</a><div class="detail-art ${accent[b.category]}" aria-hidden="true">${b.symbol}</div><div class="detail-head"><p class="eyebrow">${quote(b.category)} · ${quote(b.place)}</p><h1>${quote(b.name)}</h1></div><p class="detail-summary">${quote(b.detail)}</p><div class="detail-facts"><div><small>Zona</small><strong>${quote(b.place)}</strong></div><div><small>Precio y fechas</small><strong>Consultar con el negocio</strong></div></div><div class="detail-actions"><a class="primary" href="${b.url}" target="_blank" rel="noopener noreferrer">Ir a web oficial ↗</a><button class="secondary" type="button" data-save="${b.id}">${saved.has(b.id)?'♥ Guardado':'♡ Guardar'}</button></div><p class="detail-disclaimer">Consulta disponibilidad, servicios y condiciones directamente antes de reservar.</p></div>`;
+}
+function currentView(){
+  const parts=route();const name=parts[0]||'inicio';
+  document.querySelectorAll('[data-nav]').forEach(link=>{const active=link.dataset.nav===(name==='ficha'?'explorar':name);link.classList.toggle('active',active);if(active)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current')});
+  $('saved-count').textContent=saved.size;
+  if(name==='explorar')explore(parts.length>1?decodeURIComponent(parts.slice(1).join('/')):null);
+  else if(name==='guardados')guardados();
+  else if(name==='plan')plan();
+  else if(name==='ficha')ficha(parts[1]);
+  else home();
+  window.scrollTo(0,0);
+}
+function refreshCurrent(){const y=scrollY;currentView();window.scrollTo(0,y)}
+function wireInstall(){const button=$('install-button');if(!button)return;button.addEventListener('click',async()=>{if(installPrompt){installPrompt.prompt();await installPrompt.userChoice;installPrompt=null;return}const help=$('install-help');const apple=/iPhone|iPad|iPod/.test(navigator.userAgent);help.textContent=apple?'En Safari, toca Compartir y luego «Añadir a pantalla de inicio».':'En el menú del navegador, elige «Instalar app» o «Añadir a pantalla de inicio».';button.hidden=true})}
+
+document.addEventListener('click',event=>{
+  const save=event.target.closest('[data-save]');if(save){const id=save.dataset.save;if(saved.has(id))saved.delete(id);else saved.add(id);writeArray('albor-favorites',[...saved]);refreshCurrent();return}
+  const category=event.target.closest('[data-category]');if(category){filters.category=category.dataset.category;renderChips();renderResults();return}
+  if(event.target.id==='clear-filters'){filters.category='Todos';filters.zone='all';filters.query='';explore();return}
+});
+document.addEventListener('input',event=>{if(event.target.id==='search-input'){filters.query=event.target.value;renderResults()}});
+document.addEventListener('change',event=>{
+  if(event.target.id==='zone-select'){filters.zone=event.target.value;renderResults()}
+  const input=event.target.closest('[data-step]');if(input){const index=Number(input.dataset.step);if(input.checked)done.add(index);else done.delete(index);writeArray('albor-steps',[...done]);refreshCurrent()}
+});
+$('header-saved').addEventListener('click',()=>location.hash='#/guardados');
+window.addEventListener('hashchange',currentView);
+window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();installPrompt=event});
+currentView();
+if('serviceWorker'in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('./sw.js').catch(()=>{});
