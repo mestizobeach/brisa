@@ -1,0 +1,38 @@
+body.weather-view { background: #304b62; --sky-panel: rgba(12,30,47,.79); --sky-line: rgba(255,255,255,.25); --sky-accent: #cdeeff; }
+body.weather-view[data-phase="night"] { --sky-panel: rgba(6,15,32,.84); --sky-accent: #d6dcff; }
+body.weather-view[data-sky="clear"][data-phase="day"] { --sky-accent: #fff0c6; }
+.weather-sky { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+.weather-view .app-shell { position: relative; z-index: 1; background: transparent; border: 1px solid var(--sky-line); box-shadow: 0 18px 65px #0004; }
+.weather-view .topbar,.weather-view .back { background: rgba(9,26,43,.62); border-color: var(--sky-line); color: #fff; }
+.weather-view .brand,.weather-view .brand span,.weather-view .topbar p { color: #fff; }
+.weather-view .hero { padding-top: 29px; background: transparent; color: #fff; border: 0; }
+.weather-view .hero::before { display: none; }
+.weather-view .hero h1 { font-family: "Helvetica Neue",Arial,sans-serif; font-size: 43px; font-weight: 750; text-shadow: 0 2px 18px #102e5670; }
+.weather-view .eyebrow { color: #fff; text-shadow: 0 1px 7px #0008; }
+.weather-view .hero .status { background: var(--sky-panel); border-color: var(--sky-line); color: #fff; font-size: 15px; }
+.weather-view .hero .status::before { display: none; }
+.weather-view .hero-live { border-color: var(--sky-line); border-radius: 18px; box-shadow: 0 12px 25px #08182733; }
+.weather-view .section-shortcuts { background: rgba(13,31,49,.94); border-color: var(--sky-line); }
+.weather-view .section-shortcuts button,.weather-view .beach-actions>* ,.weather-view .refresh-row button { background: rgba(10,28,48,.78); border-color: var(--sky-line); color: #fff; }
+.weather-view .beach-actions [aria-pressed="true"] { background: #e1edf5; color: #11263b; }
+.weather-view .details { background: transparent; }
+.weather-view .daily-card,.weather-view .tide-card,.weather-view .sunset-card,.weather-view .surf-panel,.weather-view .food-card,.weather-view .quick-note,.weather-view .forecast { background: var(--sky-panel); color: #fff; border: 1px solid var(--sky-line); border-radius: 18px; box-shadow: 0 10px 22px #071c3020; }
+.weather-view .section-label,.weather-view .refresh-row span,.weather-view .hourly-source,.weather-view .hourly-source a,.weather-view .update,.weather-view .food-note { color: #fff; text-shadow: 0 1px 5px #071c30; }
+.weather-view .daily-card *,.weather-view .tide-card *,.weather-view .food-card *,.weather-view .quick-note * { color: #edf6ff; }
+.weather-view .daily-heading,.weather-view .water-row,.weather-view .daily-row { border-color: var(--sky-line); }
+.weather-view .daily-track { background: #ffffff24; }
+.weather-view .daily-range { background: linear-gradient(90deg,#94d8ff,#ffe0a5); }
+.weather-view .daily-low { color: #b6ccdd; }
+.weather-view .daily-icon,.weather-view .water-row strong,.weather-view .tide-arrow { color: var(--sky-accent); }
+.weather-view .tide-event { background: #ffffff0d; border-color: var(--sky-line); }
+.weather-view .tide-event.next { border-color: #bee8ff; box-shadow: 0 0 0 1px #bee8ff; }
+.weather-view .food-heading h2 { color: #fff; }
+.weather-view .food-heading>span,.weather-view .food-icon,.weather-view .tide-heading>span,.weather-view .sunset-icon { color: #fff; background: #ffffff14; border-color: var(--sky-line); }
+.weather-view .food-card a,.weather-view .food-card .maps-link { color: #fff; background: #ffffff14; border-color: var(--sky-line); }
+.weather-view .practical span { color: #fff; background: var(--sky-panel); border-color: var(--sky-line); }
+.weather-view .surf-hour.selected { background: #ffffff18; border-color: #bee8ff; }
+.weather-view .surf-bar>span,.weather-view .sunset-meter span { background: #9bd6f5; }
+.weather-view .surf-top>span,.weather-view .hour i { color: var(--sky-accent); }
+.weather-view .sky-caption { margin: 12px 0 3px; font-size: 11px; line-height: 1.5; color: #fff; text-shadow: 0 1px 5px #071c30; }
+.weather-view :focus-visible { outline-color: #fff0bf; }
+@media(max-width:480px) { .weather-view .app-shell { border: 0; } }

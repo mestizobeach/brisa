@@ -229,10 +229,11 @@ async function loadHourly(beach) {
   try {
     const [latitude, longitude] = beachCoordinates[beach.id];
     const url = new URL("https://api.open-meteo.com/v1/forecast");
-    url.search = new URLSearchParams({ latitude, longitude, hourly: "temperature_2m,weather_code,precipitation_probability,wind_speed_10m,is_day", timezone: "Europe/Madrid", forecast_days: "2" });
+    url.search = new URLSearchParams({ latitude, longitude, current: "temperature_2m,weather_code,wind_speed_10m,is_day", hourly: "temperature_2m,weather_code,precipitation_probability,wind_speed_10m,is_day", timezone: "Europe/Madrid", forecast_days: "2" });
     const response = await fetchForecast(url);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const hourly = (await response.json()).hourly;
+    const weatherData = await response.json();
+    const hourly = weatherData.hourly;
     if (!hourly?.time?.length || !["temperature_2m", "weather_code", "precipitation_probability", "wind_speed_10m", "is_day"].every((field) => Array.isArray(hourly[field]) && hourly[field].length === hourly.time.length)) throw new Error("Previsión incompleta");
     const nowHour = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Madrid", hour: "2-digit", hourCycle: "h23" }).format(new Date());
     const today = madridToday();
@@ -253,7 +254,9 @@ async function loadHourly(beach) {
       const wind = Number.isFinite(row.wind) ? `${Math.round(row.wind)} km/h` : "—";
       return `<div class="hour" aria-label="${row.time.slice(0, 10)} a las ${hour}:00: ${weather.label}, ${Math.round(row.temperature)} grados, lluvia ${rain}, viento ${wind}"><time>${label}</time><i aria-hidden="true">${icon}</i><b>${Math.round(row.temperature)}°</b><small>☂ ${rain}<br>≋ ${wind}</small></div>`;
     }).join("");
-    const current = rows[0];
+    const live = weatherData.current;
+    const current = live && Number.isFinite(live.temperature_2m) ? { temperature: live.temperature_2m, code: live.weather_code, day: live.is_day, wind: live.wind_speed_10m } : rows[0];
+    updateWeatherSky(current);
     const refreshed = document.querySelector(".refresh-row > span");
     if (refreshed) refreshed.textContent = `Tiempo consultado a las ${new Intl.DateTimeFormat("es-ES", { timeZone: "Europe/Madrid", hour: "2-digit", minute: "2-digit" }).format(new Date())} · hora de Asturias`;
     const currentWeather = dailyWeather(current.code);
@@ -261,6 +264,7 @@ async function loadHourly(beach) {
     if (summary?.isConnected) { summary.querySelector("strong").textContent = "Condiciones previstas ahora"; summary.lastChild.textContent = `${currentWeather.label.toLowerCase()}, ${Math.round(current.temperature)}°. Viento ${Number.isFinite(current.wind) ? Math.round(current.wind) + " km/h" : "sin datos"}.`; }
   } catch {
     if (forecast.isConnected) {
+      updateWeatherSky(null);
       forecast.textContent = "No se ha podido cargar la previsión por horas. Pulsa Actualizar para reintentar.";
       const refreshed = document.querySelector(".refresh-row > span");
       if (refreshed) refreshed.textContent = "Tiempo pendiente de consulta · hora de Asturias";
@@ -347,6 +351,6 @@ function renderBeach(b) {
   document.querySelector("#back").addEventListener("click", () => { window.location.hash = "#/playas"; });
 }
 
-function render() { const id = window.location.hash.replace("#/playa/", ""); const beach = beaches.find((item) => item.id === id); beach ? renderBeach(beach) : renderList(); enhanceExperience(beach); window.scrollTo(0, beach ? 0 : homePreferences.scroll); }
+function render() { const id = window.location.hash.replace("#/playa/", ""); const beach = beaches.find((item) => item.id === id); setWeatherView(beach); beach ? renderBeach(beach) : renderList(); enhanceExperience(beach); if (beach) document.querySelector(".hero .status").insertAdjacentHTML("afterend", '<p class="sky-caption">Cielo animado según la previsión · día y noche de esta playa</p>'); window.scrollTo(0, beach ? 0 : homePreferences.scroll); }
 window.addEventListener("hashchange", render); render();
 if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("sw.js").catch(() => {});
