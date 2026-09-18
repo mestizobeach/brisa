@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f4ef">
+  <meta name="description" content="Descubre espacios y profesionales para organizar tu boda en Asturias.">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./styles.css">
+  <title>ALBOR · Bodas en Asturias</title>
+</head>
+<body>
+  <a class="skip-link" href="#catalogo">Ir al catálogo</a>
+  <header class="site-header">
+    <a class="brand" href="#inicio" aria-label="Albor, ir al inicio"><span class="brand-mark">✳</span> ALBOR<span class="brand-dot">.</span></a>
+    <nav aria-label="Navegación principal">
+      <a href="#catalogo">Descubrir</a><a href="#plan">Mi plan</a><a href="#acerca">Sobre Albor</a>
+    </nav>
+    <button class="saved-nav" id="saved-nav" type="button" aria-label="Ver favoritos">♡ <span id="saved-count">0</span></button>
+  </header>
+
+  <main>
+    <section class="hero" id="inicio">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="eyebrow-line"></span> EL PRINCIPIO DE ALGO BONITO</p>
+        <h1>Tu boda empieza <em>en Asturias.</em></h1>
+        <p class="hero-desc">Espacios que enamoran. Personas que hacen que todo suceda. Encuentra, guarda y organiza tus favoritos en un mismo lugar.</p>
+        <div class="hero-actions"><a class="button button-dark" href="#catalogo">Explorar opciones <span aria-hidden="true">↗</span></a><a class="text-link" href="#plan">Empezar mi plan <span aria-hidden="true">→</span></a></div>
+        <div class="hero-stat"><strong id="total-count">12</strong><span>ideas para empezar<br>una historia única</span></div>
+      </div>
+      <div class="hero-art" role="img" aria-label="Ilustración de montañas asturianas y una pareja bajo un arco floral">
+        <div class="sun"></div><div class="mountain mountain-back"></div><div class="mountain mountain-front"></div><div class="ground"></div><div class="arch"></div><div class="arch-flower flower-a">✿</div><div class="arch-flower flower-b">✿</div><div class="arch-flower flower-c">✿</div><div class="person person-one"></div><div class="person person-two"></div><div class="art-caption">ASTURIAS · ESPAÑA <span>43° 21′ N</span></div>
+      </div>
+      <div class="hero-index">01 / ENCUENTRA TU LUGAR</div>
+    </section>
+
+    <section class="intro-strip" aria-label="Cómo funciona"><span>01&nbsp; Descubre</span><span class="strip-flower">✳</span><span>02&nbsp; Guarda</span><span class="strip-flower">✳</span><span>03&nbsp; Organiza</span></section>
+
+    <section class="catalog-section" id="catalogo">
+      <div class="section-heading"><div><p class="eyebrow">EL DIRECTORIO</p><h2>Encuentra a los <em>tuyos.</em></h2></div><p>Una selección inicial de espacios y profesionales con enlace a su web oficial. Elige lo que necesitas y descubre opciones para tu gran día.</p></div>
+      <div class="filter-panel">
+        <div class="category-list" role="group" aria-label="Filtrar por categoría" id="category-list"></div>
+        <div class="filter-bottom"><label class="search-wrap"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Buscar por nombre o palabra clave" aria-label="Buscar negocios"></label><label class="select-wrap">Zona <select id="zone"><option value="all">Toda Asturias</option><option value="Gijón">Gijón</option><option value="Oviedo">Oviedo</option><option value="Oriente">Oriente</option><option value="Asturias">Varias zonas</option></select></label><label class="check-wrap"><input id="favorites-only" type="checkbox"> Solo guardados</label></div>
+      </div>
+      <div class="results-bar"><span id="result-count" aria-live="polite"></span><button id="reset-filters" type="button">Limpiar filtros ↗</button></div>
+      <div class="cards" id="cards"></div>
+      <div class="empty" id="empty" hidden><span>✳</span><h3>No hay resultados con esos filtros</h3><p>Prueba con otra categoría o una búsqueda más general.</p><button class="button button-dark" id="empty-reset" type="button">Ver todas las opciones</button></div>
+    </section>
+
+    <section class="plan-section" id="plan"><div class="plan-intro"><p class="eyebrow">TU PEQUEÑA HOJA DE RUTA</p><h2>De la idea al <em>sí, quiero.</em></h2><p>Marca lo que ya tienes decidido. Tu progreso se guarda en este dispositivo.</p><div class="progress-track"><div id="progress-bar"></div></div><span id="progress-label" aria-live="polite">0 de 6 pasos completados</span></div><div class="checklist" id="checklist"></div></section>
+
+    <section class="note-section" id="acerca"><div class="note-symbol">✳</div><div><p class="eyebrow">HECHO PARA EMPEZAR</p><h2>Cada gran historia empieza con una primera idea.</h2><p>ALBOR es una guía independiente en construcción. Los enlaces llevan a los sitios oficiales de cada negocio. Consulta directamente precios, disponibilidad y detalles antes de reservar. Esta selección inicial irá creciendo con nuevos espacios y profesionales de Asturias.</p></div></section>
+  </main>
+  <footer><a class="brand" href="#inicio"><span class="brand-mark">✳</span> ALBOR<span class="brand-dot">.</span></a><p>Para historias que comienzan en Asturias.</p><span>© 2026 ALBOR</span></footer>
+  <dialog id="detail-dialog" aria-labelledby="detail-title"><button class="dialog-close" id="dialog-close" type="button" aria-label="Cerrar ficha">×</button><div id="detail-content"></div></dialog>
+  <script src="./app.js" defer></script>
+</body>
+</html>
