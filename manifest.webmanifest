@@ -3,7 +3,7 @@
   "short_name": "Brisa",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#087f9a",
+  "background_color": "#faf7ee",
+  "theme_color": "#faf7ee",
   "lang": "es"
 }
