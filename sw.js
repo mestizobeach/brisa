@@ -1,5 +1,5 @@
-const CACHE = "brisa-v14";
-const ASSETS = ["./", "./index.html", "./styles.css", "./hero-clean.css", "./hourly.css", "./daily.css", "./sunset.css", "./food.css", "./tides.css", "./surf-forecast.css", "./app.js", "./manifest.webmanifest"];
+const CACHE = "brisa-v15";
+const ASSETS = ["./", "./index.html", "./styles.css", "./hero-clean.css", "./hourly.css", "./daily.css", "./sunset.css", "./food.css", "./tides.css", "./surf-forecast.css", "./editorial.css", "./coast-lines.svg", "./app.js", "./manifest.webmanifest"];
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
 });
