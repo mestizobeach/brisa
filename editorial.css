@@ -1,0 +1,136 @@
+:root {
+  color-scheme: light;
+  --ink: #171512;
+  --muted: #655f56;
+  --paper: #faf7ee;
+  --soft: #f2ecdf;
+  --line: #d6cec0;
+  --sea: #e72c32;
+  --deep: #171512;
+  --sand: #fff1d6;
+  --success: #171512;
+  --caution: #e72c32;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  color: var(--ink);
+  background: #e72c32;
+}
+body { background: #e72c32; }
+.app-shell { border: 2px solid #171512; border-radius: 27px; background: var(--paper); box-shadow: 10px 12px 0 #171512; }
+.topbar { height: 66px; padding: 0 21px; border-bottom: 2px solid #171512; background: var(--paper); }
+.brand { color: #171512; font-family: Georgia, "Times New Roman", serif; font-size: 29px; font-weight: 700; letter-spacing: -2px; }
+.brand span { color: #e72c32; }
+.topbar p { color: #171512; font-size: 10px; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; }
+
+/* Portada: mucho aire, una ilustración de costa y tarjetas sobre rojo. */
+.screen-heading { position: relative; display: flex; flex-direction: column; justify-content: flex-end; min-height: 250px; padding: 25px 24px 27px; overflow: hidden; background: var(--paper); }
+.screen-heading::after { content: ""; position: absolute; top: 18px; right: 0; width: 235px; height: 157px; background: url("coast-lines.svg") center / contain no-repeat; }
+.screen-heading h1 { position: relative; z-index: 1; max-width: 300px; font-family: Georgia, "Times New Roman", serif; font-size: 43px; font-weight: 400; line-height: .98; letter-spacing: -2px; }
+.screen-heading p { position: relative; z-index: 1; margin-top: 10px; color: #474039; font-size: 12px; }
+.beach-list { display: grid; gap: 12px; padding: 21px 18px 28px; border-top: 2px solid #171512; background: #e72c32; }
+.beach-row { grid-template-columns: 45px 1fr auto; gap: 11px; min-height: 85px; padding: 13px 12px; border: 2px solid #171512; border-radius: 17px; color: #171512; background: var(--paper); box-shadow: 4px 4px 0 #171512; transition: transform .15s ease, box-shadow .15s ease; }
+.beach-row:last-child { border: 2px solid #171512; }
+.beach-row:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 #171512; }
+.beach-symbol { width: 43px; height: 43px; border: 2px solid #171512; border-radius: 50%; color: var(--paper); background: #e72c32; font-size: 21px; }
+.beach-name { font-family: Georgia, "Times New Roman", serif; font-size: 19px; font-weight: 700; letter-spacing: -.5px; }
+.beach-meta { color: #655f56; font-size: 11px; }
+.live { color: #171512; font-size: 9px; letter-spacing: .5px; }
+.live::before { background: #e72c32; }
+
+/* Cabecera de la playa: tipografía editorial y webcam protagonista. */
+.back { width: 100%; margin: 0; padding: 14px 20px; border-bottom: 1px solid #d6cec0; color: #171512; font-size: 12px; font-weight: 800; letter-spacing: .2px; text-align: left; }
+.hero { min-height: 0; padding: 23px 20px 21px; border-bottom: 2px solid #171512; color: #171512; background: var(--paper); }
+.hero::before { content: ""; position: absolute; top: 12px; right: 13px; width: 104px; height: 70px; opacity: .9; background: url("coast-lines.svg") center / contain no-repeat; }
+.hero::after { display: none; }
+.eyebrow { color: #e72c32; font-size: 10px; font-weight: 800; letter-spacing: 1.5px; }
+.hero h1 { max-width: 76%; font-family: Georgia, "Times New Roman", serif; font-size: 39px; font-weight: 400; line-height: 1; letter-spacing: -1.7px; }
+.hero .status { margin-top: 17px; padding: 8px 11px; border: 1px solid #171512; color: #171512; background: #f3ebde; font-size: 11px; font-weight: 800; }
+.hero .status::before { background: #e72c32; }
+.hero-live { margin-top: 18px; border: 2px solid #171512; border-radius: 11px; background: #171512; box-shadow: 5px 5px 0 #e72c32; }
+.hero-live-frame { background: #171512; }
+.hero-live-foot { padding: 10px 11px; color: var(--paper); background: #171512; font-size: 10px; }
+.hero-live-foot i { background: #e72c32; box-shadow: 0 0 0 3px rgba(231,44,50,.25); }
+.hero-live-foot a { color: var(--paper); }
+.details { padding: 22px 18px 30px; background: var(--paper); }
+.section-label { color: #e72c32; font-size: 10px; font-weight: 850; letter-spacing: 1.3px; }
+
+/* Tiempo por horas y por días. */
+.forecast { min-height: 111px; border: 2px solid #171512; border-radius: 11px; color: var(--paper); background: #171512; }
+.hour { border-right: 1px solid #5d5850; }
+.hour:last-child { border-right: 0; }
+.hour time,.hour small { color: #ded9cc; }
+.hour i { color: #f4484d; }
+.hour b { color: var(--paper); font-family: Georgia, "Times New Roman", serif; font-size: 22px; font-weight: 400; }
+.hourly-source { color: #655f56; }
+.hourly-source a { color: #171512; text-decoration: underline; }
+.daily-card { margin-top: 16px; padding: 17px 15px 11px; border: 2px solid #171512; border-radius: 12px; color: #171512; background: #fffdf7; box-shadow: 4px 4px 0 #171512; }
+.daily-heading { border-bottom: 2px solid #171512; }
+.daily-heading>span { color: #e72c32; }
+.daily-heading h2 { font-family: Georgia, "Times New Roman", serif; font-size: 20px; font-weight: 400; letter-spacing: -.4px; }
+.daily-row { min-height: 55px; border-bottom-color: #ded6c9; }
+.daily-day,.daily-low,.daily-high { color: #171512; }
+.daily-day { font-size: 12px; }
+.daily-low { color: #716b62; }
+.daily-icon { color: #e72c32; }
+.daily-sky small { color: #a62127; }
+.daily-track { background: #e2d9ca; }
+.daily-range { background: linear-gradient(90deg,#171512 0%,#e72c32 70%,#ff8580 100%); }
+.daily-source { color: #655f56; }
+.daily-source a { color: #171512; }
+
+/* Tarjetas de información, mareas y puesta de sol. */
+.quick-note { border: 1px solid #171512; border-radius: 11px; color: #171512; background: #fffdf7; }
+.quick-note span { color: #e72c32; }
+.practical span { border: 1px solid #171512; border-radius: 5px; color: #171512; background: #f3ebde; font-size: 11px; }
+.tide-card { margin-top: 24px; border: 2px solid #171512; border-radius: 12px; color: #171512; background: #fffdf7; }
+.tide-heading>span { border: 1px solid #171512; border-radius: 50%; color: #fffdf7; background: #e72c32; }
+.tide-heading .section-label { color: #e72c32; }
+.tide-heading h2 { font-family: Georgia, "Times New Roman", serif; font-size: 25px; font-weight: 400; letter-spacing: -.7px; }
+.tide-events { color: #655f56; }
+.tide-event { border: 1px solid #171512; border-radius: 8px; background: #fffdf7; }
+.tide-event.next { border-color: #e72c32; box-shadow: 0 0 0 1px #e72c32; }
+.tide-event strong { color: #171512; font-family: Georgia, "Times New Roman", serif; }
+.tide-arrow,.tide-event small,.water-row strong { color: #e72c32; }
+.water-row { border-top-color: #171512; }
+.water-row>span small,.tide-source { color: #655f56; }
+.tide-source a { color: #171512; }
+.sunset-card { border: 2px solid #171512; border-radius: 12px; color: var(--paper); background: #e72c32; box-shadow: 5px 5px 0 #171512; }
+.sunset-icon { border: 1px solid #171512; border-radius: 50%; color: var(--paper); background: #171512; }
+.sunset-head small,.sunset-outlook span,.sunset-source { color: #fff1e4; }
+.sunset-head strong { font-family: Georgia, "Times New Roman", serif; font-weight: 400; }
+.sunset-card p { color: #fff9ef; }
+.sunset-meter { background: rgba(23,21,18,.35); }
+.sunset-meter span { background: #171512; }
+
+/* Surf: panel negro con gráfica roja. */
+.surf-panel { border: 2px solid #171512; border-radius: 12px; color: var(--paper); background: #171512; box-shadow: 5px 5px 0 #e72c32; }
+.surf-top .section-label { color: #f4484d; }
+.surf-top h2 { font-family: Georgia, "Times New Roman", serif; font-size: 27px; font-weight: 400; letter-spacing: -.5px; }
+.surf-top>span { color: #f4484d; }
+.surf-main>div:first-child>strong { font-family: Georgia, "Times New Roman", serif; font-weight: 400; }
+.surf-main>div:first-child>small,.surf-facts span,.surf-chart-label,.surf-note { color: #e5ddce; }
+.surf-facts strong { color: var(--paper); }
+.surf-hour { color: #e5ddce; }
+.surf-hour.selected { border-color: #f4484d; background: rgba(231,44,50,.2); }
+.surf-bar>span { background: #e72c32; }
+.surf-hour.selected .surf-bar>span { background: #fff0db; }
+.surf-hour:focus-visible { outline-color: #f4484d; }
+.surf-note a { color: var(--paper); }
+
+/* Locales y notas prácticas. */
+.food-heading h2 { font-family: Georgia, "Times New Roman", serif; font-size: 28px; font-weight: 400; letter-spacing: -.8px; }
+.food-heading>span { border: 1px solid #171512; border-radius: 50%; color: var(--paper); background: #e72c32; }
+.food-list { gap: 11px; }
+.food-card { border: 1px solid #171512; border-radius: 11px; background: #fffdf7; box-shadow: 3px 3px 0 #171512; }
+.food-icon,.food-card:nth-child(3n+2) .food-icon,.food-card:nth-child(3n) .food-icon { border: 1px solid #171512; border-radius: 50%; color: var(--paper); background: #e72c32; }
+.food-kind { color: #b92129; }
+.food-card h3 { font-family: Georgia, "Times New Roman", serif; font-size: 20px; font-weight: 700; }
+.food-place,.food-note { color: #655f56; }
+.food-detail { color: #171512; }
+.food-card a { border: 1px solid #171512; border-radius: 6px; color: var(--paper); background: #171512; }
+.food-card a:hover { background: #e72c32; }
+.update { color: #655f56; }
+button:focus-visible,a:focus-visible { outline: 3px solid #e72c32; outline-offset: 3px; }
+@media (max-width: 480px) {
+  body { padding: 0; background: var(--paper); }
+  .app-shell { min-height: 100dvh; border: 0; border-radius: 0; box-shadow: none; }
+}
