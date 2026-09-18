@@ -1,0 +1,29 @@
+[hidden] { display: none !important; }
+.home-tools { padding: 17px 22px 20px; color: var(--ink); background: var(--paper); border-top: 1px solid var(--line); }
+.home-tools label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+.home-tools input,.share-fallback input { width: 100%; min-height: 46px; padding: 11px 13px; border: 1px solid #655f56; border-radius: 12px; color: var(--ink); background: #fffdf7; font: inherit; font-size: 16px; }
+.home-filters { display: flex; align-items: center; gap: 7px; margin-top: 12px; }
+.home-filters button,.beach-actions button,.beach-actions a,.refresh-row button,.empty-results button { min-height: 44px; padding: 10px 12px; border: 1px solid var(--ink); border-radius: 10px; font: inherit; font-size: 12px; font-weight: 700; color: var(--ink); background: var(--paper); cursor: pointer; text-decoration: none; }
+.home-filters [aria-pressed="true"],.beach-actions [aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+#result-count { margin-left: auto; color: var(--muted); font-size: 11px; }
+.home-screen .beach-row.first-visible { margin-top: 0; border-radius: 0; }
+.empty-results { padding: 35px 24px; color: var(--paper); text-align: center; }
+.empty-results p { font-size: 14px; line-height: 1.5; }
+.beach-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 18px; }
+.beach-actions>* { display: inline-flex; justify-content: center; align-items: center; flex: 1 1 auto; }
+.section-shortcuts { position: sticky; top: 0; z-index: 5; display: flex; gap: 5px; padding: 9px 12px; overflow-x: auto; background: var(--paper); border-bottom: 1px solid var(--line); scrollbar-width: thin; }
+.section-shortcuts button { flex: 0 0 auto; padding: 10px 12px; min-height: 44px; border: 1px solid var(--line); border-radius: 99px; color: var(--ink); background: #fffdf7; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.hero-live,.forecast,.tide-card,.surf-panel,.sunset-card,.food-section { scroll-margin-top: 80px; }
+.camera-help { margin: 0; padding: 9px 11px; color: #e5ddce; background: #171512; font-size: 11px; line-height: 1.5; }
+.refresh-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 20px; }
+.refresh-row span { max-width: 180px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.refresh-row button { flex-shrink: 0; }
+.refresh-row button:disabled { opacity: .6; cursor: wait; }
+.food-card .maps-link { display: inline-block; margin: 8px 0 0 4px; background: var(--paper); color: var(--ink); }
+.food-card a { min-height: 44px; display: inline-flex; align-items: center; }
+.connection-note { margin: 0; padding: 12px 20px; font-size: 13px; color: var(--paper); background: #171512; }
+.app-message { position: fixed; left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); z-index: 20; width: min(90%, 400px); transform: translateX(-50%); border-radius: 12px; padding: 12px 16px; color: #fff; background: #171512; box-shadow: 0 3px 15px #0003; font-size: 13px; pointer-events: none; }
+.app-message:empty { display: none; }
+.share-fallback { display: block; margin-top: 14px; font-size: 12px; }
+input:focus-visible { outline: 3px solid #e72c32; outline-offset: 3px; }
+.forecast:focus,.hero-live:focus { outline-offset: -3px; }

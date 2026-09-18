@@ -104,7 +104,7 @@ async function loadDaily(beach) {
     const [latitude, longitude] = beachCoordinates[beach.id];
     const url = new URL("https://api.open-meteo.com/v1/forecast");
     url.search = new URLSearchParams({ latitude, longitude, daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max", timezone: "Europe/Madrid", forecast_days: "5" });
-    const response = await fetch(url);
+    const response = await fetchForecast(url);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const daily = (await response.json()).daily;
     if (!Array.isArray(daily?.time) || daily.time.length < 5 || !["weather_code", "temperature_2m_max", "temperature_2m_min", "precipitation_probability_max"].every((field) => Array.isArray(daily[field]) && daily[field].length >= 5)) throw new Error("Previsión incompleta");
@@ -134,7 +134,7 @@ async function loadTides(beach) {
   const note = document.querySelector(`#tide-source-${beach.id}`);
   const source = tideSources[beach.id];
   try {
-    const response = await fetch(`https://demareas.com/api/${source.slug}.json`);
+    const response = await fetchForecast(`https://demareas.com/api/${source.slug}.json`);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
     const day = data.dias?.find((entry) => entry.fecha === madridToday());
@@ -168,7 +168,7 @@ function marineForecast(beach) {
     const [latitude, longitude] = beachCoordinates[beach.id];
     const url = new URL("https://marine-api.open-meteo.com/v1/marine");
     url.search = new URLSearchParams({ latitude, longitude, current: "sea_surface_temperature", hourly: "wave_height,wave_period,wave_direction,swell_wave_height", timezone: "Europe/Madrid", forecast_days: "1", cell_selection: "sea" });
-    marineRequests.set(key, fetch(url).then((response) => {
+    marineRequests.set(key, fetchForecast(url).then((response) => {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return response.json();
     }).catch((error) => { marineRequests.delete(key); throw error; }));
@@ -213,7 +213,11 @@ async function loadSurf(beach) {
     const chosen = hours.children[selected];
     hours.scrollLeft = chosen.offsetLeft - hours.offsetLeft - hours.clientWidth / 2 + chosen.clientWidth / 2;
   } catch {
-    if (panel.isConnected) panel.querySelector(`#surf-hours-${beach.id}`).textContent = "No se ha podido cargar la previsión de olas de hoy.";
+    if (panel.isConnected) {
+      panel.querySelector(`#surf-hours-${beach.id}`).textContent = "No se ha podido cargar la previsión de olas de hoy. Pulsa Actualizar para reintentar.";
+      panel.querySelector(`#surf-selected-hour-${beach.id}`).textContent = "Previsión no disponible";
+      ["height", "period", "direction", "swell"].forEach(field => { panel.querySelector(`#surf-${field}-${beach.id}`).textContent = "—"; });
+    }
   }
 }
 const metric = (value, label) => `<div class="metric"><strong>${value}</strong><span>${label}</span></div>`;
@@ -226,7 +230,7 @@ async function loadHourly(beach) {
     const [latitude, longitude] = beachCoordinates[beach.id];
     const url = new URL("https://api.open-meteo.com/v1/forecast");
     url.search = new URLSearchParams({ latitude, longitude, hourly: "temperature_2m,weather_code,precipitation_probability,wind_speed_10m,is_day", timezone: "Europe/Madrid", forecast_days: "2" });
-    const response = await fetch(url);
+    const response = await fetchForecast(url);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const hourly = (await response.json()).hourly;
     if (!hourly?.time?.length || !["temperature_2m", "weather_code", "precipitation_probability", "wind_speed_10m", "is_day"].every((field) => Array.isArray(hourly[field]) && hourly[field].length === hourly.time.length)) throw new Error("Previsión incompleta");
@@ -250,11 +254,17 @@ async function loadHourly(beach) {
       return `<div class="hour" aria-label="${row.time.slice(0, 10)} a las ${hour}:00: ${weather.label}, ${Math.round(row.temperature)} grados, lluvia ${rain}, viento ${wind}"><time>${label}</time><i aria-hidden="true">${icon}</i><b>${Math.round(row.temperature)}°</b><small>☂ ${rain}<br>≋ ${wind}</small></div>`;
     }).join("");
     const current = rows[0];
+    const refreshed = document.querySelector(".refresh-row > span");
+    if (refreshed) refreshed.textContent = `Tiempo consultado a las ${new Intl.DateTimeFormat("es-ES", { timeZone: "Europe/Madrid", hour: "2-digit", minute: "2-digit" }).format(new Date())} · hora de Asturias`;
     const currentWeather = dailyWeather(current.code);
-    if (status?.isConnected) { status.textContent = currentWeather.label; status.classList.toggle("caution", (current.code >= 51 && current.code <= 82) || current.code >= 95); }
+    if (status?.isConnected) { status.textContent = `${Math.round(current.temperature)}° · ${currentWeather.label}`; status.classList.toggle("caution", (current.code >= 51 && current.code <= 82) || current.code >= 95); }
     if (summary?.isConnected) { summary.querySelector("strong").textContent = "Condiciones previstas ahora"; summary.lastChild.textContent = `${currentWeather.label.toLowerCase()}, ${Math.round(current.temperature)}°. Viento ${Number.isFinite(current.wind) ? Math.round(current.wind) + " km/h" : "sin datos"}.`; }
   } catch {
-    if (forecast.isConnected) forecast.textContent = "No se ha podido cargar la previsión por horas.";
+    if (forecast.isConnected) {
+      forecast.textContent = "No se ha podido cargar la previsión por horas. Pulsa Actualizar para reintentar.";
+      const refreshed = document.querySelector(".refresh-row > span");
+      if (refreshed) refreshed.textContent = "Tiempo pendiente de consulta · hora de Asturias";
+    }
     if (status?.isConnected) status.textContent = "Tiempo no disponible";
     if (summary?.isConnected) { summary.querySelector("strong").textContent = "Condiciones"; summary.lastChild.textContent = "No se ha podido cargar la previsión actual."; }
   }
@@ -292,7 +302,7 @@ async function loadSunset(beach) {
   const url = new URL("https://api.open-meteo.com/v1/forecast");
   url.search = new URLSearchParams({ latitude, longitude, daily: "sunset", hourly: "cloud_cover,cloud_cover_low,cloud_cover_high,visibility,precipitation_probability", timezone: "Europe/Madrid", forecast_days: "1" });
   try {
-    const response = await fetch(url);
+    const response = await fetchForecast(url);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const estimate = sunsetEstimate(await response.json());
     if (!card.isConnected) return;
@@ -337,6 +347,6 @@ function renderBeach(b) {
   document.querySelector("#back").addEventListener("click", () => { window.location.hash = "#/playas"; });
 }
 
-function render() { const id = window.location.hash.replace("#/playa/", ""); const beach = beaches.find((item) => item.id === id); beach ? renderBeach(beach) : renderList(); }
+function render() { const id = window.location.hash.replace("#/playa/", ""); const beach = beaches.find((item) => item.id === id); beach ? renderBeach(beach) : renderList(); enhanceExperience(beach); window.scrollTo(0, beach ? 0 : homePreferences.scroll); }
 window.addEventListener("hashchange", render); render();
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
+if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("sw.js").catch(() => {});
