@@ -67,7 +67,17 @@ function currentView(){
   window.scrollTo(0,0);
 }
 function refreshCurrent(){const y=scrollY;currentView();window.scrollTo(0,y)}
-function wireInstall(){const button=$('install-button');if(!button)return;button.addEventListener('click',async()=>{if(installPrompt){installPrompt.prompt();await installPrompt.userChoice;installPrompt=null;return}const help=$('install-help');const apple=/iPhone|iPad|iPod/.test(navigator.userAgent);help.textContent=apple?'En Safari, toca Compartir y luego «Añadir a pantalla de inicio».':'En el menú del navegador, elige «Instalar app» o «Añadir a pantalla de inicio».';button.hidden=true})}
+function wireInstall(){const button=$('install-button');if(button)button.addEventListener('click',showInstall)}
+async function showInstall(){
+  if(location.protocol==='file:'){
+    $('install-message').textContent='Estás viendo un archivo local dentro de Codex. Abre la versión publicada en Safari (iPhone) o Chrome (Android) para añadirla a la pantalla de inicio.';
+    $('install-live-link').hidden=false;$('install-dialog').showModal();return;
+  }
+  if(installPrompt){installPrompt.prompt();await installPrompt.userChoice;installPrompt=null;return}
+  const apple=/iPhone|iPad|iPod/.test(navigator.userAgent);
+  $('install-message').textContent=apple?'En Safari, toca Compartir, elige «Añadir a pantalla de inicio» y pulsa Añadir. Después abre ALBOR desde su icono.':'En Chrome, abre el menú de tres puntos y elige «Instalar app» o «Añadir a pantalla de inicio». Después abre ALBOR desde su icono.';
+  $('install-live-link').hidden=true;$('install-dialog').showModal();
+}
 
 document.addEventListener('click',event=>{
   const save=event.target.closest('[data-save]');if(save){const id=save.dataset.save;if(saved.has(id))saved.delete(id);else saved.add(id);writeArray('albor-favorites',[...saved]);refreshCurrent();return}
@@ -80,7 +90,13 @@ document.addEventListener('change',event=>{
   const input=event.target.closest('[data-step]');if(input){const index=Number(input.dataset.step);if(input.checked)done.add(index);else done.delete(index);writeArray('albor-steps',[...done]);refreshCurrent()}
 });
 $('header-saved').addEventListener('click',()=>location.hash='#/guardados');
+$('install-action').addEventListener('click',showInstall);
+$('install-close').addEventListener('click',()=>$('install-dialog').close());
+$('install-dialog').addEventListener('click',event=>{if(event.target===$('install-dialog'))$('install-dialog').close()});
+if(location.protocol==='file:')$('preview-alert').hidden=false;
+if(matchMedia('(display-mode: standalone)').matches||navigator.standalone)$('install-action').hidden=true;
 window.addEventListener('hashchange',currentView);
 window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();installPrompt=event});
+window.addEventListener('appinstalled',()=>{$('install-action').hidden=true;installPrompt=null});
 currentView();
 if('serviceWorker'in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('./sw.js').catch(()=>{});

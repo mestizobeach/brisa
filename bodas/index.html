@@ -12,15 +12,18 @@
   <link rel="apple-touch-icon" href="./icon-180.png">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="stylesheet" href="./app-shell.css">
+  <link rel="stylesheet" href="./install.css">
   <title>ALBOR · Bodas en Asturias</title>
 </head>
 <body>
   <a class="skip" href="#app">Ir al contenido</a>
   <div class="shell">
-    <header class="topbar"><a class="brand" href="#/inicio" aria-label="ALBOR, inicio"><span>✳</span> albor</a><div class="topbar-right"><span class="location">⌖ Asturias</span><button class="icon-button" id="header-saved" aria-label="Ver guardados">♡ <small id="saved-count">0</small></button></div></header>
+    <header class="topbar"><a class="brand" href="#/inicio" aria-label="ALBOR, inicio"><span>✳</span> albor</a><div class="topbar-right"><span class="location">⌖ Asturias</span><button class="install-action" id="install-action" type="button">Instalar</button><button class="icon-button" id="header-saved" aria-label="Ver guardados">♡ <small id="saved-count">0</small></button></div></header>
+    <div class="preview-alert" id="preview-alert" hidden><strong>Vista previa local</strong><span>Para instalar ALBOR, abre la versión publicada en Safari o Chrome.</span><a href="https://mestizobeach.github.io/brisa/bodas/" target="_blank" rel="noopener noreferrer">Abrir versión instalable ↗</a></div>
     <main id="app" tabindex="-1"></main>
     <nav class="bottom-nav" aria-label="Navegación de la app"><a href="#/inicio" data-nav="inicio"><span class="nav-icon">⌂</span><span>Inicio</span></a><a href="#/explorar" data-nav="explorar"><span class="nav-icon">⌕</span><span>Explorar</span></a><a href="#/guardados" data-nav="guardados"><span class="nav-icon">♡</span><span>Guardados</span></a><a href="#/plan" data-nav="plan"><span class="nav-icon">☷</span><span>Mi plan</span></a></nav>
   </div>
+  <dialog id="install-dialog" aria-labelledby="install-title"><button class="dialog-close" id="install-close" type="button" aria-label="Cerrar">×</button><p class="eyebrow">ALBOR EN TU MÓVIL</p><h2 id="install-title">Instala la app.</h2><p id="install-message"></p><a class="primary" id="install-live-link" href="https://mestizobeach.github.io/brisa/bodas/" target="_blank" rel="noopener noreferrer" hidden>Abrir versión publicada ↗</a></dialog>
   <script src="./data.js"></script>
   <script src="./app.js"></script>
 </body>
