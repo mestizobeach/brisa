@@ -1,0 +1,62 @@
+/* Portada de playas: capas fotográficas inspiradas en la referencia. */
+.home-screen { background: #171512; }
+.home-screen .screen-heading {
+  min-height: 182px;
+  padding: 26px 25px 24px;
+  border-bottom: 0;
+  background: #faf7ee;
+}
+.home-screen .screen-heading::after { width: 160px; height: 106px; top: -8px; right: -42px; opacity: .42; }
+.home-kicker { position: relative; z-index: 1; margin-bottom: 18px; color: #e72c32; font-size: 10px; font-weight: 850; letter-spacing: 1.8px; }
+.home-screen .screen-heading h1 { font-size: clamp(37px, 10vw, 47px); }
+.home-screen .screen-heading p { font-size: 13px; }
+.home-screen .beach-list { display: block; padding: 0; border: 0; background: #171512; }
+.home-screen .beach-row,
+.home-screen .beach-row:last-child {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: clamp(220px, 61vw, 270px);
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  isolation: isolate;
+  border: 0;
+  border-radius: 0;
+  color: #fff;
+  background: linear-gradient(145deg, #59798a, #182c3c 58%, #101820);
+  box-shadow: none;
+  text-align: center;
+  cursor: pointer;
+  transition: none;
+}
+.home-screen .beach-row + .beach-row,
+.home-screen .beach-row:last-child { margin-top: -21px; border-radius: 48% 48% 0 0 / 10% 10% 0 0; }
+.home-screen .beach-row:nth-child(3) { border-radius: 40% 58% 0 0 / 11% 8% 0 0; }
+.home-screen .beach-row:nth-child(5) { border-radius: 55% 38% 0 0 / 9% 12% 0 0; }
+.home-screen .beach-row:hover { transform: none; box-shadow: none; }
+.beach-photo,
+.beach-shade { position: absolute; inset: 0; width: 100%; height: 100%; }
+.beach-photo { z-index: -2; object-fit: cover; object-position: center 47%; transition: transform .45s ease; }
+.home-screen .beach-row:nth-child(2) .beach-photo { object-position: center 55%; }
+.home-screen .beach-row:nth-child(4) .beach-photo { object-position: center 51%; }
+.home-screen .beach-row:hover .beach-photo { transform: scale(1.045); }
+.beach-shade { z-index: -1; background: linear-gradient(180deg, rgba(10,19,25,.47), rgba(9,18,25,.36) 35%, rgba(8,15,23,.66) 100%); }
+.beach-card-top { position: absolute; top: 34px; right: 22px; left: 22px; display: flex; align-items: center; justify-content: space-between; }
+.beach-number { font-size: 10px; font-weight: 850; letter-spacing: 2px; }
+.home-screen .live { display: inline-flex; align-items: center; padding: 7px 9px; border: 1px solid rgba(255,255,255,.75); border-radius: 99px; color: #fff; background: rgba(12,22,25,.25); font-size: 9px; font-weight: 800; letter-spacing: 1px; }
+.home-screen .live::before { width: 6px; height: 6px; margin-right: 6px; background: #f0474b; }
+.beach-card-center { position: absolute; top: 52%; right: 15px; left: 15px; transform: translateY(-50%); }
+.home-screen .beach-name { display: block; font-family: "Helvetica Neue", Arial, sans-serif; font-size: clamp(34px, 10vw, 49px); font-weight: 800; line-height: .95; letter-spacing: -2px; text-shadow: 0 2px 14px rgba(0,0,0,.35); }
+.home-screen .beach-meta { display: block; margin-top: 10px; color: #fff; font-size: 13px; font-weight: 650; letter-spacing: .2px; text-shadow: 0 1px 8px rgba(0,0,0,.55); }
+.beach-card-bottom { position: absolute; right: 0; bottom: 24px; left: 0; display: inline-flex; gap: 10px; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; letter-spacing: 1.8px; }
+.beach-card-bottom span { font-size: 17px; font-weight: 400; line-height: .6; }
+.home-credits { padding: 25px 22px 31px; color: #ece6d9; background: #171512; }
+.home-credits strong { display: block; margin-bottom: 8px; color: #f34a50; font-size: 10px; letter-spacing: 1.4px; text-transform: uppercase; }
+.home-credits p { margin: 0; font-size: 10px; line-height: 1.8; }
+.home-credits a { color: #ece6d9; text-underline-offset: 2px; }
+.home-credits span { padding: 0 3px; color: #f34a50; }
+.home-credits .photo-credit { padding: 0; color: #ece6d9; }
+.home-screen .beach-row:focus-visible { outline: 3px solid #fff; outline-offset: -6px; }
+@media (prefers-reduced-motion: reduce) { .beach-photo { transition: none; } }

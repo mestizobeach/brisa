@@ -18,6 +18,17 @@ const beaches = [
   { id:"penarronda", name:"Peñarronda", town:"Tapia de Casariego", temp:"20°", water:"18°", wind:"↗ 17 km/h", waves:"0,8 m", period:"9 s", swell:"NO", uv:"UV 4", tide:"15:58", status:"Oleaje moderado", condition:"caution", tip:"Viento y olas moderados. Mira la webcam para decidir si te compensa ir ahora.", surf:"Mar de fondo moderado. El viento puede afectar la calidad de la ola.", practical:["Arenal amplio","Entorno natural","Consulta la webcam"] }
 ];
 
+// Fotografías de Wikimedia Commons; créditos y licencia visibles en la portada.
+const beachPhotos = {
+  "san-lorenzo": { file: "Playa de San Lorenzo en Gijón.jpg", author: "Mentxuwiki", license: "CC BY-SA 4.0" },
+  rodiles: { file: "PLAYA DE RODILES EN VILLAVICIOSA.jpg", author: "Turismovillaviciosa", license: "CC BY-SA 4.0" },
+  salinas: { file: "Playa de Salinas, Castrillón.jpg", author: "Angelrtz", license: "CC BY-SA 4.0" },
+  aguilar: { file: "Playa de Aguilar.jpg", author: "Einaz80", license: "CC BY-SA 4.0" },
+  penarronda: { file: "Playa-Penarronda.jpg", author: "Marta Gonzalez", license: "Dominio público" }
+};
+const commonsPage = (file) => `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(file).replace(/%20/g, "_")}`;
+const commonsImage = (file) => `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}?width=960`;
+
 const app = document.querySelector("#app");
 const beachPlans = {
   "san-lorenzo": { parking: "Aparcamiento disponible en el entorno urbano · precio no confirmado" },
@@ -292,7 +303,14 @@ async function loadSunset(beach) {
 }
 
 function renderList() {
-  app.innerHTML = `<section><div class="screen-heading"><h1>Elige tu playa</h1><p>Tiempo, mar y webcam en un vistazo</p></div><div class="beach-list">${beaches.map((b) => `<button class="beach-row" data-beach="${b.id}" type="button"><span class="beach-symbol" aria-hidden="true">☀</span><span><span class="beach-name">${b.name}</span><span class="beach-meta">${b.town}</span></span><span class="live">DIRECTO</span></button>`).join("")}</div></section>`;
+  app.innerHTML = `<section class="home-screen"><div class="screen-heading"><span class="home-kicker">COSTA DE ASTURIAS · 05 PLAYAS</span><h1>Elige tu playa</h1><p>Tiempo, mar y webcam en un vistazo</p></div><div class="beach-list">${beaches.map((b, index) => {
+    const photo = beachPhotos[b.id];
+    return `<button class="beach-row" data-beach="${b.id}" type="button" aria-label="Ver ${b.name}, ${b.town}; webcam en directo"><img class="beach-photo" src="${commonsImage(photo.file)}" alt="" loading="${index === 0 ? "eager" : "lazy"}" decoding="async"><span class="beach-shade" aria-hidden="true"></span><span class="beach-card-top"><span class="beach-number">0${index + 1} / 05</span><span class="live">DIRECTO</span></span><span class="beach-card-center"><span class="beach-name">${b.name}</span><span class="beach-meta">${b.town}</span></span><span class="beach-card-bottom">EXPLORAR LA PLAYA <span aria-hidden="true">↗</span></span></button>`;
+  }).join("")}</div><div class="home-credits"><strong>Fotografías</strong><p>${beaches.map((b) => {
+    const photo = beachPhotos[b.id];
+    const license = photo.license === "Dominio público" ? "Dominio público" : `<a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">${photo.license}</a>`;
+    return `<span class="photo-credit"><a href="${commonsPage(photo.file)}" target="_blank" rel="noopener noreferrer">${b.name}: ${photo.author}</a> · ${license}</span>`;
+  }).join("<span aria-hidden=\"true\"> · </span>")}</p></div></section>`;
   document.querySelectorAll("[data-beach]").forEach((button) => button.addEventListener("click", () => { window.location.hash = `#/playa/${button.dataset.beach}`; }));
 }
 
