@@ -328,6 +328,9 @@ function renderList() {
 
 function renderBeach(b) {
   app.innerHTML = `<section><button class="back" type="button" id="back">‹ Todas las playas</button><header class="hero"><p class="eyebrow">${b.town.toUpperCase()} · AHORA</p><h1>${b.name}</h1><div class="status ${b.condition === "caution" ? "caution" : ""}">Cargando tiempo…</div>${liveCamera(b)}</header><div class="details"><p class="section-label">PRÓXIMAS 24 HORAS</p><div class="forecast">Cargando previsión…</div><div class="quick-note" style="margin-top:20px"><span>✦</span><div><strong>Condiciones</strong>Cargando previsión…</div></div><p class="section-label">CONDICIONES</p><div class="metrics">${metric(b.temp,"Temperatura")}${metric(b.wind,"Viento")}${metric(b.waves,"Oleaje")}${metric(b.uv,"Índice UV")}${metric(b.tide,"Próx. bajamar")}${metric(b.water,"Temperatura del agua")}</div><section class="surf"><p class="section-label">SURF</p><div class="surf-grid"><div><strong>${b.waves}</strong><span>Altura de ola</span></div><div><strong>${b.period}</strong><span>Periodo</span></div><div><strong>${b.swell}</strong><span>Dirección</span></div></div><p>${b.surf}</p></section><div class="practical">${b.practical.map((item) => `<span>${item}</span>`).join("")}</div><p class="update">Tiempo, mar y surf: datos de demostración · Puesta de sol: previsión real</p></div></section>`;
+  app.querySelector("section").classList.add("beach-detail");
+  const photo = beachPhotos[b.id];
+  document.querySelector(".hero").insertAdjacentHTML("afterbegin", `<div class="detail-cover"><img src="${commonsImage(photo.file)}" alt="Vista de la playa ${b.name}" decoding="async"><a class="detail-credit" href="${commonsPage(photo.file)}" target="_blank" rel="noopener noreferrer">Foto: ${photo.author} ↗</a></div>`);
   document.querySelector(".hero .status").classList.remove("caution");
   document.querySelector(".forecast").insertAdjacentHTML("afterend", `<p class="hourly-source">Previsión aproximada: <a href="https://open-meteo.com/en/docs" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · ☂ lluvia · ≋ viento</p>${dailySection(b.id)}`);
   const plan = beachPlans[b.id];
@@ -349,6 +352,6 @@ function renderBeach(b) {
   document.querySelector("#back").addEventListener("click", () => { window.location.hash = "#/playas"; });
 }
 
-function render() { const id = window.location.hash.replace("#/playa/", ""); const beach = beaches.find((item) => item.id === id); beach ? renderBeach(beach) : renderList(); enhanceExperience(beach); window.scrollTo(0, beach ? 0 : homePreferences.scroll); }
+function render() { const id = window.location.hash.replace("#/playa/", ""); const beach = beaches.find((item) => item.id === id); document.body.classList.toggle("detail-view", Boolean(beach)); beach ? renderBeach(beach) : renderList(); enhanceExperience(beach); window.scrollTo(0, beach ? 0 : homePreferences.scroll); }
 window.addEventListener("hashchange", render); render();
 if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("sw.js").catch(() => {});
