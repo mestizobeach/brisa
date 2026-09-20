@@ -256,7 +256,6 @@ async function loadHourly(beach) {
     }).join("");
     const live = weatherData.current;
     const current = live && Number.isFinite(live.temperature_2m) ? { temperature: live.temperature_2m, code: live.weather_code, day: live.is_day, wind: live.wind_speed_10m } : rows[0];
-    updateWeatherSky(current);
     const refreshed = document.querySelector(".refresh-row > span");
     if (refreshed) refreshed.textContent = `Tiempo consultado a las ${new Intl.DateTimeFormat("es-ES", { timeZone: "Europe/Madrid", hour: "2-digit", minute: "2-digit" }).format(new Date())} · hora de Asturias`;
     const currentWeather = dailyWeather(current.code);
@@ -264,7 +263,6 @@ async function loadHourly(beach) {
     if (summary?.isConnected) { summary.querySelector("strong").textContent = "Condiciones previstas ahora"; summary.lastChild.textContent = `${currentWeather.label.toLowerCase()}, ${Math.round(current.temperature)}°. Viento ${Number.isFinite(current.wind) ? Math.round(current.wind) + " km/h" : "sin datos"}.`; }
   } catch {
     if (forecast.isConnected) {
-      updateWeatherSky(null);
       forecast.textContent = "No se ha podido cargar la previsión por horas. Pulsa Actualizar para reintentar.";
       const refreshed = document.querySelector(".refresh-row > span");
       if (refreshed) refreshed.textContent = "Tiempo pendiente de consulta · hora de Asturias";
@@ -351,6 +349,6 @@ function renderBeach(b) {
   document.querySelector("#back").addEventListener("click", () => { window.location.hash = "#/playas"; });
 }
 
-function render() { const id = window.location.hash.replace("#/playa/", ""); const beach = beaches.find((item) => item.id === id); setWeatherView(beach); beach ? renderBeach(beach) : renderList(); enhanceExperience(beach); if (beach) document.querySelector(".hero .status").insertAdjacentHTML("afterend", '<p class="sky-caption">Cielo animado según la previsión · día y noche de esta playa</p>'); window.scrollTo(0, beach ? 0 : homePreferences.scroll); }
+function render() { const id = window.location.hash.replace("#/playa/", ""); const beach = beaches.find((item) => item.id === id); beach ? renderBeach(beach) : renderList(); enhanceExperience(beach); window.scrollTo(0, beach ? 0 : homePreferences.scroll); }
 window.addEventListener("hashchange", render); render();
 if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("sw.js").catch(() => {});
