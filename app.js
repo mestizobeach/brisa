@@ -175,8 +175,19 @@ function marineForecast(beach) {
   }
   return marineRequests.get(key);
 }
-const surfSection = (id) => `<section class="surf-panel" id="surf-${id}" aria-label="Previsión de surf de hoy"><div class="surf-top"><div><p class="section-label">SURF · HOY</p><h2>Olas por horas</h2></div><span aria-hidden="true">≋</span></div><div class="surf-main"><div><strong id="surf-height-${id}">—</strong><small id="surf-selected-hour-${id}">Cargando previsión…</small></div><div class="surf-facts"><span>Periodo <strong id="surf-period-${id}">—</strong></span><span>Dirección <strong id="surf-direction-${id}">—</strong></span><span>Mar de fondo <strong id="surf-swell-${id}">—</strong></span></div></div><p class="surf-chart-label">ALTURA DE OLA A CADA HORA · DESLIZA Y TOCA</p><div class="surf-hours" id="surf-hours-${id}" aria-label="Altura de ola por hora"></div><p class="surf-note">Altura significativa prevista mar adentro. La ola al romper puede ser diferente. Datos: <a href="https://open-meteo.com/en/docs/marine-weather-api" target="_blank" rel="noopener noreferrer">Open-Meteo</a> / <a href="https://www.dwd.de/" target="_blank" rel="noopener noreferrer">DWD</a>.</p></section>`;
+const surfSection = (id) => `<section class="surf-panel windy-surf" id="surf-${id}" aria-label="Previsión de oleaje de hoy"><div class="surf-top"><div><p class="section-label">MAR · HOY</p><h2>Oleaje por horas</h2></div><span class="windy-waves" aria-hidden="true">≈</span></div><div class="surf-main"><div class="surf-height"><span>Altura significativa</span><strong id="surf-height-${id}">—</strong><small id="surf-selected-hour-${id}">Cargando previsión…</small></div><div class="surf-energy"><span>Energía del oleaje</span><div><strong id="surf-energy-${id}">—</strong><small>kJ/m²</small></div><em>estimada</em></div></div><div class="surf-facts"><span>Periodo <strong id="surf-period-${id}">—</strong></span><span>Dirección <strong id="surf-direction-${id}">—</strong></span><span>Mar de fondo <strong id="surf-swell-${id}">—</strong></span></div><div class="wave-scale" aria-label="Escala de altura de ola"><span><i style="--scale:#39c6d4"></i>Suave</span><span><i style="--scale:#7fd06a"></i>Media</span><span><i style="--scale:#f0cb44"></i>Fuerte</span><span><i style="--scale:#f56b48"></i>Muy fuerte</span></div><p class="surf-chart-label">ALTURA · DIRECCIÓN · ENERGÍA &nbsp;—&nbsp; DESLIZA Y TOCA</p><div class="surf-hours" id="surf-hours-${id}" aria-label="Oleaje por hora"></div><p class="surf-note">Altura significativa prevista mar adentro. Energía estimada con E = ρgH²/16; la ola al romper puede variar por el fondo y la costa. Datos: <a href="https://open-meteo.com/en/docs/marine-weather-api" target="_blank" rel="noopener noreferrer">Open-Meteo</a> / <a href="https://www.dwd.de/" target="_blank" rel="noopener noreferrer">DWD</a>.</p></section>`;
 const waveNumber = (value) => typeof value === "number" && Number.isFinite(value) ? value.toFixed(1).replace(".", ",") : "—";
+const waveEnergy = (height) => typeof height === "number" && Number.isFinite(height) ? 1025 * 9.81 * height * height / 16 / 1000 : null;
+const waveEnergyNumber = (value) => typeof value === "number" && Number.isFinite(value) ? (value < 10 ? value.toFixed(1) : Math.round(value).toString()).replace(".", ",") : "—";
+const waveColor = (height) => {
+  if (!(typeof height === "number" && Number.isFinite(height))) return "#758896";
+  if (height < 0.5) return "#39c6d4";
+  if (height < 1) return "#7fd06a";
+  if (height < 1.5) return "#d9d94c";
+  if (height < 2) return "#f0b63f";
+  if (height < 2.5) return "#f56b48";
+  return "#c94ecf";
+};
 const waveDirection = (degrees) => {
   if (typeof degrees !== "number" || !Number.isFinite(degrees)) return "—";
   return ["N", "NE", "E", "SE", "S", "SO", "O", "NO"][Math.round(degrees / 45) % 8];
@@ -198,6 +209,7 @@ async function loadSurf(beach) {
     const show = (index) => {
       const row = rows[index];
       panel.querySelector(`#surf-height-${beach.id}`).textContent = `${waveNumber(row.height)} m`;
+      panel.querySelector(`#surf-energy-${beach.id}`).textContent = waveEnergyNumber(waveEnergy(row.height));
       panel.querySelector(`#surf-selected-hour-${beach.id}`).textContent = `A las ${row.time.slice(11, 16)}`;
       panel.querySelector(`#surf-period-${beach.id}`).textContent = `${waveNumber(row.period)} s`;
       panel.querySelector(`#surf-direction-${beach.id}`).textContent = waveDirection(row.direction);
@@ -207,7 +219,7 @@ async function loadSurf(beach) {
         button.setAttribute("aria-pressed", String(i === index));
       });
     };
-    hours.innerHTML = rows.map((row, i) => `<button class="surf-hour" type="button" data-hour="${i}" aria-label="${row.time.slice(11, 16)}, ola ${waveNumber(row.height)} metros"><time>${row.time.slice(11, 13)}</time><span class="surf-bar"><span style="height:${Math.max(12, Math.round((Number(row.height) || 0) / maximum * 64))}px"></span></span><strong>${waveNumber(row.height)}</strong></button>`).join("");
+    hours.innerHTML = rows.map((row, i) => `<button class="surf-hour" type="button" data-hour="${i}" style="--wave-color:${waveColor(row.height)}" aria-label="${row.time.slice(11, 16)}, ola ${waveNumber(row.height)} metros, energía ${waveEnergyNumber(waveEnergy(row.height))} kilojulios por metro cuadrado"><time>${row.time.slice(11, 13)}</time><span class="wave-arrow" style="--wave-direction:${Number(row.direction) || 0}deg" aria-hidden="true">↑</span><span class="surf-bar"><span style="height:${Math.max(12, Math.round((Number(row.height) || 0) / maximum * 64))}px"></span></span><strong>${waveNumber(row.height)}<small>m</small></strong><em>${waveEnergyNumber(waveEnergy(row.height))}<small> kJ</small></em></button>`).join("");
     hours.querySelectorAll(".surf-hour").forEach((button) => button.addEventListener("click", () => show(Number(button.dataset.hour))));
     show(selected);
     const chosen = hours.children[selected];
@@ -216,7 +228,7 @@ async function loadSurf(beach) {
     if (panel.isConnected) {
       panel.querySelector(`#surf-hours-${beach.id}`).textContent = "No se ha podido cargar la previsión de olas de hoy. Pulsa Actualizar para reintentar.";
       panel.querySelector(`#surf-selected-hour-${beach.id}`).textContent = "Previsión no disponible";
-      ["height", "period", "direction", "swell"].forEach(field => { panel.querySelector(`#surf-${field}-${beach.id}`).textContent = "—"; });
+      ["height", "energy", "period", "direction", "swell"].forEach(field => { panel.querySelector(`#surf-${field}-${beach.id}`).textContent = "—"; });
     }
   }
 }

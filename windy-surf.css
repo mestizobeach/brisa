@@ -1,0 +1,25 @@
+.beach-detail .windy-surf{position:relative;margin-top:30px;padding:20px 0 17px;overflow:hidden;border:1px solid #5d7f8c;border-radius:22px;color:#fff;background:radial-gradient(circle at 88% 4%,#cd4eb9 0 4%,transparent 19%),radial-gradient(circle at 100% 28%,#ef7c43 0,transparent 25%),radial-gradient(circle at 18% 112%,#157e9d 0,transparent 44%),linear-gradient(145deg,#112f47 0%,#184d66 47%,#476076 100%);box-shadow:0 16px 32px #0007}
+.beach-detail .windy-surf::before{content:"";position:absolute;inset:0;opacity:.22;background:repeating-radial-gradient(ellipse at 10% 90%,transparent 0 24px,#fff 25px 26px,transparent 27px 40px);transform:rotate(-8deg) scale(1.4);pointer-events:none}
+.beach-detail .windy-surf>*{position:relative;z-index:1}
+.beach-detail .windy-surf .surf-top{align-items:flex-start}
+.beach-detail .windy-surf .surf-top .section-label{margin-bottom:4px;color:#aeeaf2;font-family:inherit;font-size:10px;letter-spacing:1.5px;transform:none}
+.beach-detail .windy-surf .surf-top h2{font-family:var(--surf-hand);font-size:30px;line-height:1;letter-spacing:.5px;text-transform:none}
+.windy-waves{display:grid;place-items:center;width:45px;height:45px;border:1px solid #ffffff66;border-radius:50%;color:#fff!important;background:#081d2e66;font-family:Georgia,serif;font-size:35px!important;line-height:1!important;backdrop-filter:blur(8px)}
+.beach-detail .windy-surf .surf-main{align-items:stretch;margin-top:19px}
+.windy-surf .surf-height>span,.surf-energy>span{display:block;margin-bottom:6px;color:#c9eaf0;font-size:10px;font-weight:750;letter-spacing:.5px;text-transform:uppercase}
+.beach-detail .windy-surf .surf-height>strong{display:block;color:#fff;font-family:inherit;font-size:49px;font-weight:750;line-height:.9;letter-spacing:-2px}
+.windy-surf .surf-height>small{display:block;margin-top:7px;color:#d7edf1;font-size:11px}
+.surf-energy{min-width:124px;padding:12px 13px;border:1px solid #ffffff42;border-radius:15px;background:#071d2c85;backdrop-filter:blur(8px)}
+.surf-energy>div{display:flex;align-items:baseline;gap:4px}.surf-energy strong{font-size:27px;line-height:1}.surf-energy small{color:#fff;font-size:11px;font-weight:800}.surf-energy em{display:block;margin-top:6px;color:#9ac9d2;font-size:9px;font-style:normal;text-transform:uppercase}
+.beach-detail .windy-surf .surf-facts{grid-template-columns:repeat(3,1fr);gap:7px;margin:15px 17px 0}
+.beach-detail .windy-surf .surf-facts span{display:grid;gap:3px;padding:9px 10px;border:1px solid #ffffff2e;border-radius:11px;color:#b9dde4;background:#071d2c5c;font-size:9px;text-transform:uppercase;backdrop-filter:blur(6px)}
+.beach-detail .windy-surf .surf-facts strong{color:#fff;font-size:13px;text-transform:none}
+.wave-scale{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin:15px 17px 0;color:#d7edf1;font-size:8px;text-align:center}.wave-scale span{display:grid;gap:5px}.wave-scale i{display:block;height:5px;border-radius:6px;background:var(--scale)}
+.beach-detail .windy-surf .surf-chart-label{margin-top:18px;color:#b9dde4;font-size:9px;letter-spacing:.45px}
+.beach-detail .windy-surf .surf-hours{gap:6px;min-height:157px;padding:0 13px 9px}
+.beach-detail .windy-surf .surf-hour{position:relative;flex-basis:55px;justify-content:flex-end;gap:4px;padding:8px 4px 7px;border:1px solid #ffffff1f;border-radius:13px;color:#eaf8fa;background:#09243773;backdrop-filter:blur(5px)}
+.beach-detail .windy-surf .surf-hour.selected{border-color:#fff;background:#ffffff20;box-shadow:inset 0 0 0 1px #ffffff55}
+.windy-surf .surf-hour time{color:#c8e5ea;font-size:10px}.wave-arrow{display:block;color:var(--wave-color);font-size:14px;font-weight:900;line-height:1;transform:rotate(var(--wave-direction))}.beach-detail .windy-surf .surf-bar{height:55px}.beach-detail .windy-surf .surf-bar>span,.beach-detail .windy-surf .surf-hour.selected .surf-bar>span{width:20px;border-radius:9px 9px 4px 4px;background:linear-gradient(180deg,#fff8,var(--wave-color) 45%);box-shadow:0 0 11px color-mix(in srgb,var(--wave-color) 60%,transparent)}
+.beach-detail .windy-surf .surf-hour strong{color:#fff;font-size:12px}.windy-surf .surf-hour strong small{font-size:8px}.windy-surf .surf-hour em{color:var(--wave-color);font-size:9px;font-style:normal;font-weight:800;white-space:nowrap}.windy-surf .surf-hour em small{font-size:7px}
+.beach-detail .windy-surf .surf-note{color:#b9d7dc}.beach-detail .windy-surf .surf-note a{color:#fff}
+@media(max-width:350px){.beach-detail .windy-surf .surf-main{display:grid}.surf-energy{min-width:0}.beach-detail .windy-surf .surf-facts{grid-template-columns:1fr}.wave-scale{font-size:7px}}
